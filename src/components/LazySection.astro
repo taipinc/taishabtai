@@ -1,0 +1,22 @@
+---
+interface Props {
+    slug: string;
+    title: string;
+    year: number;
+    medium?: string;
+    hero?: string;
+}
+
+const { slug, title, year, medium, hero } = Astro.props;
+---
+
+<section id={slug} class="project-section" data-lazy>
+    <div class="project-header">
+        <h2>{title}</h2>
+        <p class="meta">{year}{medium && ` — ${medium}`}</p>
+    </div>
+    {hero && <img src={hero} alt={title} class="project-hero" />}
+    <div class="project-content" data-slug={slug}>
+        <slot />
+    </div>
+</section>

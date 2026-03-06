@@ -1,0 +1,29 @@
+---
+import "../styles/global.css";
+import Sidebar from "../components/Sidebar.astro";
+
+interface Props {
+    title?: string;
+}
+
+const { title = "Shabtai Pinchevsky" } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>{title}</title>
+    </head>
+    <body>
+        <div class="layout">
+            <aside class="sidebar">
+                <Sidebar />
+            </aside>
+            <main class="content">
+                <slot />
+            </main>
+        </div>
+    </body>
+</html>

@@ -1,0 +1,148 @@
+---
+import { getCollection } from "astro:content";
+
+const ongoing = (await getCollection("ongoing")).sort(
+    (a, b) => b.data.year - a.data.year,
+);
+const projects = (await getCollection("projects")).sort(
+    (a, b) => b.data.year - a.data.year,
+);
+const otherWorks = (await getCollection("other-works")).sort(
+    (a, b) => b.data.year - a.data.year,
+);
+const interactive = (await getCollection("interactive")).sort(
+    (a, b) => b.data.year - a.data.year,
+);
+const teachingTools = (await getCollection("teaching-tools")).sort(
+    (a, b) => b.data.year - a.data.year,
+);
+
+interface NavItem {
+    title: string;
+    slug: string;
+    year: number;
+    url?: string;
+    github?: string;
+}
+
+interface NavSection {
+    label: string;
+    items: NavItem[];
+    showYear: boolean;
+    external: boolean;
+}
+
+const sections: NavSection[] = [
+    {
+        label: "Ongoing",
+        showYear: true,
+        external: false,
+        items: ongoing.map((p) => ({
+            title: p.data.title,
+            slug: p.data.slug,
+            year: p.data.year,
+        })),
+    },
+    {
+        label: "Projects",
+        showYear: true,
+        external: false,
+        items: projects.map((p) => ({
+            title: p.data.title,
+            slug: p.data.slug,
+            year: p.data.year,
+        })),
+    },
+    {
+        label: "Interactive",
+        showYear: false,
+        external: false,
+        items: interactive.map((p) => ({
+            title: p.data.title,
+            slug: p.data.slug,
+            year: p.data.year,
+        })),
+    },
+    {
+        label: "Other Works",
+        showYear: false,
+        external: false,
+        items: otherWorks.map((p) => ({
+            title: p.data.title,
+            slug: p.data.slug,
+            year: p.data.year,
+        })),
+    },
+    {
+        label: "Teaching Tools",
+        showYear: false,
+        external: true,
+        items: teachingTools.map((p) => ({
+            title: p.data.title,
+            slug: p.data.slug,
+            year: p.data.year,
+            url: p.data.url,
+            github: p.data.github,
+        })),
+    },
+];
+---
+
+<nav class="sidebar-nav">
+    <div class="artist-name">
+        <a href="/">Shabtai Pinchevsky</a>
+    </div>
+    <!-- <a href="/#about" class="about-link">About</a> -->
+
+    {
+        sections.map(
+            (section) =>
+                section.items.length > 0 && (
+                    <div class="nav-section">
+                        <h2 class="nav-heading">{section.label}</h2>
+                        <ul>
+                            {section.items.map((item) =>
+                                section.external ? (
+                                    <li>
+                                        <div class="nav-tool-row">
+                                            <a
+                                                href={item.url || "#"}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                class="nav-tool-link"
+                                            >
+                                                <span class="nav-title">{item.title}</span>
+                                                <span class="external-arrow">&nearr;</span>
+                                            </a>
+                                            {item.github && (
+                                                <a
+                                                    href={item.github}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    class="github-link"
+                                                    aria-label={`${item.title} on GitHub`}
+                                                >
+                                                    <svg viewBox="0 0 16 16" width="1em" height="1em" fill="currentColor">
+                                                        <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
+                                                    </svg>
+                                                </a>
+                                            )}
+                                        </div>
+                                    </li>
+                                ) : (
+                                    <li>
+                                        <a href={`/#${item.slug}`}>
+                                            <span class="nav-title">{item.title}</span>
+                                            {section.showYear && (
+                                                <span class="year">{item.year}</span>
+                                            )}
+                                        </a>
+                                    </li>
+                                ),
+                            )}
+                        </ul>
+                    </div>
+                ),
+        )
+    }
+</nav>

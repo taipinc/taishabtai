@@ -1,0 +1,82 @@
+---
+import { getCollection, render } from "astro:content";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import LazySection from "../components/LazySection.astro";
+
+const ongoing = (await getCollection("ongoing")).sort(
+    (a, b) => b.data.year - a.data.year,
+);
+const projects = (await getCollection("projects")).sort(
+    (a, b) => b.data.year - a.data.year,
+);
+const interactive = (await getCollection("interactive")).sort(
+    (a, b) => b.data.year - a.data.year,
+);
+const otherWorks = (await getCollection("other-works")).sort(
+    (a, b) => b.data.year - a.data.year,
+);
+const allSections = [
+    { label: "Ongoing", items: ongoing },
+    { label: "Projects", items: projects },
+    { label: "Interactive", items: interactive },
+    { label: "Other Works", items: otherWorks },
+];
+---
+
+<BaseLayout>
+    <img src="/images/main.jpg" alt="Shabtai Pinchevsky" class="hero-image" />
+
+    <section id="about" class="about-section">
+        <p>
+            I'm a photographer and digital media artist whose practice examines
+            the politics of image-making in contested geographies, particularly
+            Israel/Palestine. I work across 3D modeling, mapping, drone
+            photography, and archival research to examine photography's
+            entanglements with colonial and territorial politics. I'm an
+            Assistant Professor of Photography at Parsons School of Design, The
+            New School.
+        </p>
+    </section>
+
+    {
+        allSections.map(
+            (section) =>
+                section.items.length > 0 && (
+                    <div class="collection-group">
+                        {section.items.map(async (item) => {
+                            const { Content } = await render(item);
+                            return (
+                                <LazySection
+                                    slug={item.data.slug}
+                                    title={item.data.title}
+                                    year={item.data.year}
+                                    medium={item.data.medium}
+                                    hero={item.data.hero}
+                                >
+                                    <Content />
+                                </LazySection>
+                            );
+                        })}
+                    </div>
+                ),
+        )
+    }
+</BaseLayout>
+
+<script>
+    const observer = new IntersectionObserver(
+        (entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add("visible");
+                    observer.unobserve(entry.target);
+                }
+            });
+        },
+        { rootMargin: "200px" },
+    );
+
+    document.querySelectorAll("[data-lazy]").forEach((el) => {
+        observer.observe(el);
+    });
+</script>

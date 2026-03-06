@@ -1,0 +1,11 @@
+---
+interface Props {
+  gap?: string;
+}
+
+const { gap = 'var(--space-md)' } = Astro.props;
+---
+
+<div class="two-column" style={`gap: ${gap};`}>
+  <slot />
+</div>
