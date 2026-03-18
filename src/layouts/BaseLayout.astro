@@ -1,4 +1,6 @@
 ---
+import { ClientRouter } from "astro:transitions";
+import { Font } from "astro:assets";
 import "../styles/global.css";
 import Sidebar from "../components/Sidebar.astro";
 
@@ -15,15 +17,134 @@ const { title = "Shabtai Pinchevsky" } = Astro.props;
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>{title}</title>
+        <Font cssVariable="--font-body" preload />
+        <Font cssVariable="--font-heading" preload />
+        <ClientRouter />
+        <script is:inline>
+            if (localStorage.getItem('sidebar-view') === 'grid') {
+                document.documentElement.classList.add('grid-mode');
+            }
+        </script>
     </head>
     <body>
         <div class="layout">
-            <aside class="sidebar">
+            <aside class="sidebar" transition:persist>
                 <Sidebar />
             </aside>
-            <main class="content">
+            <main class="content" transition:name="content">
                 <slot />
             </main>
         </div>
+
+        <div class="lightbox" id="lightbox">
+            <button class="lightbox-close" aria-label="Close">&times;</button>
+            <button class="lightbox-prev" aria-label="Previous">&lsaquo;</button>
+            <button class="lightbox-next" aria-label="Next">&rsaquo;</button>
+            <img src="" alt="" />
+            <div class="lightbox-caption"></div>
+        </div>
+        <script>
+            let sidebarScrollTop = 0;
+
+            document.addEventListener("astro:before-swap", () => {
+                sidebarScrollTop = document.querySelector(".sidebar")?.scrollTop ?? 0;
+            });
+
+            document.addEventListener("astro:after-swap", () => {
+                if (localStorage.getItem('sidebar-view') === 'grid') {
+                    document.documentElement.classList.add('grid-mode');
+                }
+
+                const sidebar = document.querySelector(".sidebar");
+                if (sidebar) sidebar.scrollTop = sidebarScrollTop;
+
+                const path = window.location.pathname.replace(/\/$/, "");
+                document.querySelectorAll(".sidebar-nav li a").forEach((a) => {
+                    const href = a.getAttribute("href")?.replace(/\/$/, "") || "";
+                    a.classList.toggle("active", href === path);
+                });
+
+                document.querySelector(".content")?.scrollTo(0, 0);
+            });
+        </script>
+
+        <script>
+            function initLightbox() {
+                const lightbox = document.getElementById("lightbox")!;
+                const lbImg = lightbox.querySelector("img")!;
+                const lbCaption = lightbox.querySelector(".lightbox-caption")!;
+                const btnClose = lightbox.querySelector(".lightbox-close")!;
+                const btnPrev = lightbox.querySelector(".lightbox-prev")!;
+                const btnNext = lightbox.querySelector(".lightbox-next")!;
+
+                let figures: HTMLElement[] = [];
+                let currentIndex = 0;
+
+                function collectFigures() {
+                    figures = Array.from(
+                        document.querySelectorAll(".project-content figure")
+                    );
+                }
+
+                function show(index: number) {
+                    if (figures.length === 0) return;
+                    currentIndex = ((index % figures.length) + figures.length) % figures.length;
+                    const fig = figures[currentIndex];
+                    const img = fig.querySelector("img");
+                    const caption = fig.querySelector(".caption");
+                    if (!img) return;
+
+                    // Fall back to gallery caption if figure has none
+                    let captionText = caption?.textContent || "";
+                    if (!captionText) {
+                        const gallery = fig.closest(".gallery");
+                        const galleryCaption = gallery?.querySelector(":scope > .caption");
+                        captionText = galleryCaption?.textContent || "";
+                    }
+
+                    lbImg.src = img.src;
+                    lbImg.alt = img.alt;
+                    lbCaption.textContent = captionText;
+                    lightbox.classList.add("active");
+
+                    btnPrev.style.display = figures.length > 1 ? "" : "none";
+                    btnNext.style.display = figures.length > 1 ? "" : "none";
+                }
+
+                function close() {
+                    lightbox.classList.remove("active");
+                }
+
+                // Click on figures
+                document.addEventListener("click", (e) => {
+                    const fig = (e.target as HTMLElement).closest(".project-content figure");
+                    if (fig) {
+                        collectFigures();
+                        const idx = figures.indexOf(fig as HTMLElement);
+                        if (idx !== -1) show(idx);
+                    }
+                });
+
+                btnClose.addEventListener("click", close);
+                btnPrev.addEventListener("click", (e) => { e.stopPropagation(); show(currentIndex - 1); });
+                btnNext.addEventListener("click", (e) => { e.stopPropagation(); show(currentIndex + 1); });
+
+                // Click backdrop to close
+                lightbox.addEventListener("click", (e) => {
+                    if (e.target === lightbox || e.target === lbImg) close();
+                });
+
+                // Keyboard
+                document.addEventListener("keydown", (e) => {
+                    if (!lightbox.classList.contains("active")) return;
+                    if (e.key === "Escape") close();
+                    if (e.key === "ArrowLeft") show(currentIndex - 1);
+                    if (e.key === "ArrowRight") show(currentIndex + 1);
+                });
+            }
+
+            initLightbox();
+            document.addEventListener("astro:after-swap", initLightbox);
+        </script>
     </body>
 </html>

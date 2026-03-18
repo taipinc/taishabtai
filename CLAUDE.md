@@ -6,7 +6,7 @@ Artist portfolio site built with Astro + MDX, static output for GitHub Pages.
 - Astro 5 with MDX integration
 - Plain CSS (no frameworks) — all styles in `src/styles/global.css`
 - CSS custom properties for design system (colors, spacing, typography)
-- Font: elza-text (body + headings) via Adobe Fonts (Typekit)
+- Font: Standard (body + headings) via self-hosted webfonts in `public/webfonts/`
 - Root font-size scales with viewport height: `clamp(14px, 2.2vh, 24px)`
 
 ## Project Structure
@@ -18,8 +18,8 @@ Artist portfolio site built with Astro + MDX, static output for GitHub Pages.
 - `src/components/VideoEmbed.astro` — Vimeo/YouTube embed from URL
 - `src/components/TwoColumn.astro` — two-column flex layout
 - `src/components/index.ts` — barrel export for MDX imports
-- `src/pages/index.astro` — single-page homepage with all sections
-- `src/pages/[collection]/[slug].astro` — individual routes for direct sharing
+- `src/pages/index.astro` — homepage with hero image and about text
+- `src/pages/[slug].astro` — individual content pages at flat URLs (e.g. `/anti-mapping`)
 
 ## Content Conventions
 - Each MDX file has frontmatter: `title`, `year`, `slug` (required); `medium`, `hero` (optional)

@@ -1,22 +1,32 @@
 ---
+import { Image } from "astro:assets";
+import type { ImageMetadata } from "astro";
+
 interface Props {
     slug: string;
     title: string;
     year: number;
     medium?: string;
-    hero?: string;
+    hero?: ImageMetadata;
+    iframe?: string;
 }
 
-const { slug, title, year, medium, hero } = Astro.props;
+const { slug, title, year, medium, hero, iframe } = Astro.props;
 ---
 
-<section id={slug} class="project-section" data-lazy>
+<section id={slug} class:list={[{ "iframe-section": iframe }]}>
     <div class="project-header">
         <h2>{title}</h2>
-        <p class="meta">{year}{medium && ` — ${medium}`}</p>
+        <p class="meta">{year}<br />{medium && `${medium}`}</p>
     </div>
-    {hero && <img src={hero} alt={title} class="project-hero" />}
-    <div class="project-content" data-slug={slug}>
-        <slot />
-    </div>
+    {iframe ? (
+        <iframe class="project-iframe" src={iframe} title={title}></iframe>
+    ) : (
+        <>
+            {hero && <Image src={hero} alt={title} class="project-hero" />}
+            <div class="project-content" data-slug={slug}>
+                <slot />
+            </div>
+        </>
+    )}
 </section>

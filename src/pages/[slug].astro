@@ -1,11 +1,15 @@
 ---
 import { getCollection, render } from "astro:content";
-import BaseLayout from "../../layouts/BaseLayout.astro";
-import LazySection from "../../components/LazySection.astro";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import LazySection from "../components/LazySection.astro";
 
 export async function getStaticPaths() {
-    const items = await getCollection("interactive");
-    return items.map((item) => ({
+    const collections = ["ongoing", "projects", "interactive", "other-works"] as const;
+    const allItems = (
+        await Promise.all(collections.map((c) => getCollection(c)))
+    ).flat();
+
+    return allItems.map((item) => ({
         params: { slug: item.data.slug },
         props: { item },
     }));
@@ -21,7 +25,7 @@ const { Content } = await render(item);
         title={item.data.title}
         year={item.data.year}
         medium={item.data.medium}
-        hero={item.data.hero}
+        iframe={item.data.iframe}
     >
         <Content />
     </LazySection>

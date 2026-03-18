@@ -1,0 +1,15 @@
+---
+interface Props {
+    caption?: string;
+    gap?: string;
+}
+
+const { caption, gap = "4px" } = Astro.props;
+---
+
+<div class="gallery" style={`--gallery-gap: ${gap}`}>
+    <div class="gallery-images">
+        <slot />
+    </div>
+    {caption && <p class="caption">{caption}</p>}
+</div>
