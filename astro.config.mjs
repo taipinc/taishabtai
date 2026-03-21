@@ -1,33 +1,24 @@
 import { defineConfig, fontProviders } from 'astro/config';
 import mdx from '@astrojs/mdx';
 export default defineConfig({
+  site: 'https://taipinc.github.io',
+  base: '/taishabtai',
   integrations: [mdx()],
   output: 'static',
   fonts: [
     {
       provider: fontProviders.adobe({ id: "wcs0fkh" }),
-      name: "Helvetica Neue LT Pro",
+      name: "Neue Haas Unica",
       cssVariable: "--font-body",
       weights: [300, 400, 600, 700],
+      fallbacks: ["sans-serif"],
     },
     {
-      provider: fontProviders.local(),
-      name: "Junicode Condensed",
+      provider: fontProviders.adobe({ id: "wcs0fkh" }),
+      name: "New Spirit Condensed",
       cssVariable: "--font-heading",
-      options: {
-        variants: [
-          {
-            weight: 400,
-            style: "normal",
-            src: ["./src/assets/fonts/junicode-regularcondensed-webfont.woff2"],
-          },
-          {
-            weight: 700,
-            style: "normal",
-            src: ["./src/assets/fonts/junicode-boldcondensed-webfont.woff2"],
-          },
-        ],
-      },
+      weights: [400],
+      fallbacks: ["serif"],
     },
   ],
 });

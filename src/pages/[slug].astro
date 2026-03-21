@@ -1,7 +1,7 @@
 ---
 import { getCollection, render } from "astro:content";
-import BaseLayout from "../layouts/BaseLayout.astro";
-import LazySection from "../components/LazySection.astro";
+import { Image } from "astro:assets";
+import GridContentLayout from "../layouts/GridContentLayout.astro";
 
 export async function getStaticPaths() {
     const collections = ["ongoing", "projects", "interactive", "other-works"] as const;
@@ -17,16 +17,33 @@ export async function getStaticPaths() {
 
 const { item } = Astro.props;
 const { Content } = await render(item);
+const { slug, title, year, medium, hero, iframe } = item.data;
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 ---
 
-<BaseLayout title={`${item.data.title} — Shabtai Pinchevsky`}>
-    <LazySection
-        slug={item.data.slug}
-        title={item.data.title}
-        year={item.data.year}
-        medium={item.data.medium}
-        iframe={item.data.iframe}
-    >
-        <Content />
-    </LazySection>
-</BaseLayout>
+<GridContentLayout
+    title={`${title} — Shabtai Pinchevsky`}
+    activeSlug={slug}
+>
+    <div class="content-page">
+        <header class="project-header">
+            <div class="project-header-text">
+                <h2>{title}</h2>
+                <p class="meta">{year}{medium && <><br />{medium}</>}</p>
+            </div>
+            <a href={`${base}/`} class="close-btn" aria-label="Close">&times;</a>
+        </header>
+        {iframe ? (
+            <div class="project-body iframe-section">
+                <iframe class="project-iframe" src={iframe} title={title}></iframe>
+            </div>
+        ) : (
+            <div class="project-body">
+                {hero && <Image src={hero} alt={title} class="project-hero" />}
+                <div class="project-content" data-slug={slug}>
+                    <Content />
+                </div>
+            </div>
+        )}
+    </div>
+</GridContentLayout>

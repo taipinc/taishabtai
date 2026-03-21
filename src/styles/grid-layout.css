@@ -1,0 +1,425 @@
+/* Grid layout — 4-column independently scrolling homepage */
+
+body:has(.grid-main) {
+    overflow: hidden;
+    height: 100%;
+}
+
+html:has(.grid-main) {
+    overflow: hidden;
+    height: 100%;
+}
+
+.grid-header {
+    height: var(--header-h);
+    padding: var(--space-panel);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid var(--color-text);
+}
+
+.grid-header .artist-name {
+    font-family: var(--font-heading);
+    font-weight: 400;
+    font-size: 2.5rem;
+    line-height: 1;
+}
+
+.grid-main {
+    padding: 0;
+    height: calc(100vh - var(--grid-header-h, 4.5rem));
+    overflow: hidden;
+}
+
+.project-grid {
+    display: flex;
+    height: 100%;
+    gap: var(--space-md);
+    padding: 0 var(--space-md);
+}
+
+.project-grid-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.project-grid-col.col-wide {
+    flex: none;
+    width: 30%;
+}
+
+.col-scroll {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-panel);
+}
+
+.col-heading {
+    font-family: var(--font-heading);
+    font-weight: 400;
+    font-size: 1.4rem;
+    line-height: 1;
+    padding: 0.8rem var(--space-panel);
+    margin: 0 calc(-1 * var(--space-panel));
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: var(--color-bg);
+    flex-shrink: 0;
+    border-bottom: 1px solid var(--color-text);
+}
+
+.project-grid-item {
+    display: block;
+    margin-bottom: var(--space-sm);
+}
+
+.project-grid-item img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* Homepage: tinted B&W images, color on hover */
+.img-tint {
+    position: relative;
+    overflow: hidden;
+}
+
+.img-tint::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: #131117;
+    mix-blend-mode: color;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+}
+
+.home-columns .project-grid-item img,
+.content-nav .project-grid-item img {
+    filter: grayscale(1) brightness(80%) contrast(110%);
+    transition: filter 0.2s ease;
+}
+
+.project-grid-item:hover .img-tint::after,
+.project-grid-item:active .img-tint::after,
+.project-grid-item.active .img-tint::after {
+    opacity: 0;
+}
+
+.project-grid-item:hover img,
+.project-grid-item:active img,
+.project-grid-item.active img {
+    filter: none;
+}
+
+/* Recent media column */
+.recent-media {
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+    text-align: left;
+}
+
+.recent-media img {
+    width: 100%;
+    height: auto;
+    display: block;
+    filter: grayscale(1) brightness(80%) contrast(110%);
+    transition: filter 0.2s ease;
+}
+
+.recent-media:hover .img-tint::after,
+.recent-media:active .img-tint::after {
+    opacity: 0;
+}
+
+.recent-media:hover img,
+.recent-media:active img {
+    filter: none;
+}
+
+.video-play-icon {
+    position: absolute;
+    top: 0.4rem;
+    right: 0.4rem;
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.7);
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Lightbox video support */
+.lightbox-video {
+    display: none;
+    position: relative;
+    width: 90%;
+    max-width: 1200px;
+    aspect-ratio: 16 / 9;
+}
+
+.lightbox-video iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+.project-grid-item .grid-placeholder {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    background: #efeeec;
+    border: 1px solid #d8d7d6;
+    position: relative;
+}
+
+.project-grid-item .grid-placeholder::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        to bottom right,
+        transparent calc(50% - 0.5px),
+        #d8d7d6 calc(50% - 0.5px),
+        #d8d7d6 calc(50% + 0.5px),
+        transparent calc(50% + 0.5px)
+    );
+}
+
+.project-grid-label {
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.3;
+    margin-top: 0.1rem;
+    color: var(--color-text);
+}
+
+.col-info {
+    line-height: 1.4;
+    font-size: 0.9rem;
+}
+
+.info-links {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    position: sticky;
+    bottom: 0;
+    background: var(--color-bg);
+    padding: 1.5rem 0;
+    margin-top: auto;
+}
+
+.info-links-row {
+    display: flex;
+    gap: 1.2rem;
+}
+
+.info-divider {
+    border: none;
+    border-top: 1px solid black;
+    margin: 0.2rem 0;
+}
+
+.info-links a {
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    color: var(--color-muted);
+    /*letter-spacing: 0.02em;*/
+}
+
+.info-links a:hover {
+    color: var(--color-text);
+}
+
+/* --- Content layout: nav column + content panel --- */
+
+.grid-content-layout {
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+    position: relative;
+}
+
+.content-nav {
+    width: 30%;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.content-nav .col-scroll {
+    padding: 0 var(--space-panel);
+}
+
+.content-nav .project-grid-item.active .project-grid-label {
+    /*font-weight: 600;*/
+}
+
+.content-panel {
+    flex: 1;
+    height: 100vh;
+    overflow-y: auto;
+    padding: var(--space-panel);
+    position: relative;
+    border-left: 1px solid var(--color-text);
+}
+
+/* Remove padding from content panel — children handle their own */
+.content-panel:has(.home-content),
+.content-panel:has(.content-page) {
+    padding: 0;
+    overflow: hidden;
+}
+
+/* Content page layout */
+.content-page {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.project-header {
+    height: var(--header-h);
+    padding: 0 var(--space-panel);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid var(--color-text);
+}
+
+.project-header-text {
+    display: flex;
+    align-items: flex-end;
+    gap: var(--space-md);
+    flex: 1;
+    min-width: 0;
+}
+
+.project-header h2 {
+    font-family: var(--font-heading);
+    font-weight: 400;
+    font-size: 2.5rem;
+    line-height: 1;
+}
+
+.project-header .meta {
+    color: var(--color-muted);
+    font-size: 0.7rem;
+    margin-left: auto;
+    text-align: right;
+    padding-right: var(--space-panel);
+}
+
+/* Close button inside header bar */
+.project-header .close-btn {
+    flex-shrink: 0;
+    width: var(--header-h);
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    line-height: 1;
+    color: var(--color-muted);
+    background: none;
+    border: none;
+    border-left: 1px solid var(--color-text);
+    cursor: pointer;
+    padding: 0;
+    margin-right: calc(-1 * var(--space-panel));
+}
+
+.project-header .close-btn:hover {
+    color: var(--color-text);
+    text-decoration: none;
+}
+
+.project-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--space-panel);
+}
+
+.project-body.iframe-section {
+    padding: 0;
+    overflow: hidden;
+}
+
+.project-iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+.home-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+/* Top bar spanning all home columns — same height as aside .grid-header */
+.home-content > .col-header {
+    flex-shrink: 0;
+    height: var(--header-h);
+    border-bottom: 1px solid var(--color-text);
+}
+
+.home-columns {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+}
+
+.home-columns .project-grid-col + .project-grid-col {
+    border-left: 1px solid var(--color-text);
+}
+
+.home-columns .col-scroll {
+    padding: 0 var(--space-panel);
+}
+
+/* View transition: content panel slides in from right */
+
+@keyframes slide-in-right {
+    from {
+        opacity: 0;
+        transform: translateX(40px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slide-out-right {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(40px);
+    }
+}
+
+::view-transition-old(content-panel) {
+    animation: slide-out-right 0.15s ease-in forwards;
+}
+
+::view-transition-new(content-panel) {
+    animation: slide-in-right 0.2s ease-out forwards;
+}

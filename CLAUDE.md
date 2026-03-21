@@ -14,7 +14,6 @@ Artist portfolio site built with Astro + MDX, static output for GitHub Pages.
 - `src/content.config.ts` — collection schemas (projectSchema + teachingToolSchema)
 - `src/layouts/BaseLayout.astro` — two-panel layout (40% sidebar / 60% content)
 - `src/components/Sidebar.astro` — nav generated from all collections
-- `src/components/LazySection.astro` — project section wrapper with optional hero image
 - `src/components/VideoEmbed.astro` — Vimeo/YouTube embed from URL
 - `src/components/TwoColumn.astro` — two-column flex layout
 - `src/components/index.ts` — barrel export for MDX imports
