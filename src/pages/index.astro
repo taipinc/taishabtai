@@ -37,7 +37,9 @@ const toGridItems = (items: any[], external = false): GridItem[] =>
 function getEmbedUrl(url: string): string {
     const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
     if (vimeoMatch) return `https://player.vimeo.com/video/${vimeoMatch[1]}`;
-    const youtubeMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]+)/);
+    const youtubeMatch = url.match(
+        /(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]+)/,
+    );
     if (youtubeMatch) return `https://www.youtube.com/embed/${youtubeMatch[1]}`;
     return url;
 }
@@ -90,7 +92,10 @@ const teachingToolItems = toGridItems(teachingTools, true);
                     <h2 class="col-heading">Other Works</h2>
                     {
                         otherWorksItems.map((item) => (
-                            <a href={`${base}/${item.slug}`} class="project-grid-item">
+                            <a
+                                href={`${base}/${item.slug}`}
+                                class="project-grid-item"
+                            >
                                 {item.hero ? (
                                     <div class="img-tint">
                                         <Image
@@ -119,7 +124,10 @@ const teachingToolItems = toGridItems(teachingTools, true);
                     <h2 class="col-heading">Interactive</h2>
                     {
                         interactiveItems.map((item) => (
-                            <a href={`${base}/${item.slug}`} class="project-grid-item">
+                            <a
+                                href={`${base}/${item.slug}`}
+                                class="project-grid-item"
+                            >
                                 {item.hero ? (
                                     <div class="img-tint">
                                         <Image
@@ -158,6 +166,9 @@ const teachingToolItems = toGridItems(teachingTools, true);
                                             width={800}
                                             quality={80}
                                         />
+                                        <div class="external-link-icon">
+                                            &#8599;
+                                        </div>
                                     </div>
                                 ) : (
                                     <div class="grid-placeholder" />
@@ -171,60 +182,80 @@ const teachingToolItems = toGridItems(teachingTools, true);
                 </div>
             </div>
 
-            <!-- Column 4: Recent -->
+            <!-- Column 4: Info / Recent -->
             <div class="project-grid-col">
                 <div class="col-scroll">
+                    <h2 class="col-heading">Info</h2>
+                    <div class="info-section">
+                        <p>
+                            I'm a photographer and digital media artist whose
+                            practice examines the politics of image-making in
+                            contested geographies, particularly
+                            Israel/Palestine. I work across 3D modeling,
+                            mapping, drone photography, and archival research to
+                            examine photography's entanglements with colonial
+                            and territorial politics.
+                        </p><p>
+                            I'm an Assistant Professor of Photography at Parsons
+                            School of Design, The New School.
+                        </p>
+                    </div>
+
                     <h2 class="col-heading">Recent</h2>
-                    {resolvedRecent.map((item, i) =>
-                        item.srcImage ? (
-                            <button
-                                class="recent-media"
-                                data-index={i}
-                                data-type="image"
-                                data-src={item.srcImage.src}
-                                data-caption={item.caption || ""}
-                            >
-                                <div class="img-tint">
-                                    <Image
-                                        src={item.srcImage}
-                                        alt={item.caption || ""}
-                                        loading="lazy"
-                                        width={800}
-                                        quality={80}
-                                    />
-                                </div>
-                            </button>
-                        ) : item.video ? (
-                            <button
-                                class="recent-media"
-                                data-index={i}
-                                data-type="video"
-                                data-src={getEmbedUrl(item.video)}
-                                data-caption={item.caption || ""}
-                            >
-                                <div class="img-tint">
-                                    {item.thumbImage ? (
+                    {
+                        resolvedRecent.map((item, i) =>
+                            item.srcImage ? (
+                                <button
+                                    class="recent-media"
+                                    data-index={i}
+                                    data-type="image"
+                                    data-src={item.srcImage.src}
+                                    data-caption={item.caption || ""}
+                                >
+                                    <div class="img-tint">
                                         <Image
-                                            src={item.thumbImage}
+                                            src={item.srcImage}
                                             alt={item.caption || ""}
                                             loading="lazy"
                                             width={800}
                                             quality={80}
                                         />
-                                    ) : getVimeoThumb(item.video) ? (
-                                        <img
-                                            src={getVimeoThumb(item.video)!}
-                                            alt={item.caption || ""}
-                                            loading="lazy"
-                                        />
-                                    ) : (
-                                        <div class="grid-placeholder" />
-                                    )}
-                                    <div class="video-play-icon">&#9654;</div>
-                                </div>
-                            </button>
-                        ) : null
-                    )}
+                                    </div>
+                                </button>
+                            ) : item.video ? (
+                                <button
+                                    class="recent-media"
+                                    data-index={i}
+                                    data-type="video"
+                                    data-src={getEmbedUrl(item.video)}
+                                    data-caption={item.caption || ""}
+                                >
+                                    <div class="img-tint">
+                                        {item.thumbImage ? (
+                                            <Image
+                                                src={item.thumbImage}
+                                                alt={item.caption || ""}
+                                                loading="lazy"
+                                                width={800}
+                                                quality={80}
+                                            />
+                                        ) : getVimeoThumb(item.video) ? (
+                                            <img
+                                                src={getVimeoThumb(item.video)!}
+                                                alt={item.caption || ""}
+                                                loading="lazy"
+                                            />
+                                        ) : (
+                                            <div class="grid-placeholder" />
+                                        )}
+                                        <div class="video-play-icon">
+                                            &#9654;
+                                        </div>
+                                    </div>
+                                </button>
+                            ) : null,
+                        )
+                    }
                 </div>
             </div>
         </div>
