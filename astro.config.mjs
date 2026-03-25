@@ -14,11 +14,11 @@ export default defineConfig({
       fallbacks: ["sans-serif"],
     },
     {
-      provider: fontProviders.adobe({ id: "wcs0fkh" }),
-      name: "New Spirit Condensed",
+      provider: fontProviders.google(),
+      name: "Archivo Narrow",
       cssVariable: "--font-heading",
-      weights: [400],
-      fallbacks: ["serif"],
+      weights: [400, 500, 600, 700],
+      fallbacks: ["sans-serif"],
     },
   ],
 });

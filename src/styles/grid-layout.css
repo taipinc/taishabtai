@@ -21,10 +21,10 @@ html:has(.grid-main) {
 
 .grid-header .artist-name {
     font-family: var(--font-heading);
-    font-weight: 400;
+    font-weight: 500;
     font-size: 2.5rem;
     line-height: 1;
-    color: var(--color-highlight);
+    /*color: var(--color-highlight);*/
 }
 
 .grid-main {
@@ -62,7 +62,7 @@ html:has(.grid-main) {
 
 .col-heading {
     font-family: var(--font-heading);
-    font-weight: 400;
+    font-weight: 500;
     font-size: 1.4rem;
     line-height: 1;
     padding: 0.8rem var(--space-panel);
@@ -106,8 +106,8 @@ html:has(.grid-main) {
     content: "";
     position: absolute;
     inset: 0;
-    background: #131117;
-    mix-blend-mode: color;
+    background: var(--color-tint);
+    mix-blend-mode: screen;
     pointer-events: none;
     transition: opacity 0.2s ease;
 }
@@ -210,8 +210,9 @@ html:has(.grid-main) {
 }
 
 .project-grid-label {
-    font-size: 1rem;
-    font-weight: 400;
+    font-family: var(--font-heading);
+    font-size: 1.2rem;
+    font-weight: 500;
     line-height: 1.3;
     margin-top: 0.1rem;
     color: var(--color-text);
