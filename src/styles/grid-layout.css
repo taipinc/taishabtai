@@ -24,6 +24,7 @@ html:has(.grid-main) {
     font-weight: 400;
     font-size: 2.5rem;
     line-height: 1;
+    color: var(--color-highlight);
 }
 
 .grid-main {
@@ -277,7 +278,7 @@ html:has(.grid-main) {
 }
 
 .content-nav .project-grid-item.active .project-grid-label {
-    /*font-weight: 600;*/
+    color: var(--color-highlight);
 }
 
 .content-panel {
