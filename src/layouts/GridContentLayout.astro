@@ -19,6 +19,7 @@ interface GridItem {
     slug: string;
     year: number;
     hero?: ImageMetadata;
+    summary?: string;
 }
 
 const toGridItems = (items: any[]): GridItem[] =>
@@ -27,6 +28,7 @@ const toGridItems = (items: any[]): GridItem[] =>
         slug: p.data.slug,
         year: p.data.year,
         hero: p.data.hero,
+        summary: p.data.summary,
     }));
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
@@ -64,6 +66,7 @@ const currentPath = Astro.url.pathname.replace(/\/$/, "");
                                 <div class="grid-placeholder" />
                             )}
                             <div class="project-grid-label">{item.title}</div>
+                            {item.summary && <div class="project-grid-summary">{item.summary}</div>}
                         </a>
                     ))}
 
@@ -79,6 +82,7 @@ const currentPath = Astro.url.pathname.replace(/\/$/, "");
                                 <div class="grid-placeholder" />
                             )}
                             <div class="project-grid-label">{item.title}</div>
+                            {item.summary && <div class="project-grid-summary">{item.summary}</div>}
                         </a>
                     ))}
                 </div>

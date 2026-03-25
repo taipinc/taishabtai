@@ -58,6 +58,7 @@ html:has(.grid-main) {
     display: flex;
     flex-direction: column;
     gap: var(--space-panel);
+    padding-bottom: var(--space-lg);
 }
 
 .col-heading {
@@ -106,15 +107,15 @@ html:has(.grid-main) {
     content: "";
     position: absolute;
     inset: 0;
-    background: var(--color-tint);
-    mix-blend-mode: screen;
+    /*background: var(--color-tint);
+    mix-blend-mode: screen;*/
     pointer-events: none;
     transition: opacity 0.2s ease;
 }
 
 .home-columns .project-grid-item img,
 .content-nav .project-grid-item img {
-    filter: grayscale(1) brightness(80%) contrast(110%);
+    filter: grayscale(1) /*brightness(80%) contrast(110%);*/;
     transition: filter 0.2s ease;
 }
 
@@ -218,6 +219,14 @@ html:has(.grid-main) {
     color: var(--color-text);
 }
 
+.project-grid-summary {
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    line-height: 1.4;
+    color: var(--color-muted);
+    margin-top: 0.1rem;
+}
+
 .col-info {
     line-height: 1.4;
     font-size: 0.9rem;
@@ -275,7 +284,7 @@ html:has(.grid-main) {
 }
 
 .content-nav .col-scroll {
-    padding: 0 var(--space-panel);
+    padding: 0 var(--space-panel) var(--space-lg);
 }
 
 .content-nav .project-grid-item.active .project-grid-label {
@@ -402,7 +411,7 @@ html:has(.grid-main) {
 }
 
 .home-columns .col-scroll {
-    padding: 0 var(--space-panel);
+    padding: 0 var(--space-panel) var(--space-lg);
 }
 
 /* View transition: content panel slides in from right */
