@@ -221,9 +221,9 @@ html:has(.grid-main) {
 
 .project-grid-summary {
     font-family: var(--font-body);
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     line-height: 1.4;
-    color: var(--color-muted);
+    color: var(--color-text);
     margin-top: 0.1rem;
 }
 

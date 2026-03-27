@@ -474,7 +474,7 @@ html.grid-mode .icon-list {
 /* Gallery */
 
 .gallery {
-    margin: 0 0 var(--space-md) 0;
+    /*margin: 0 0 var(--space-md) 0;*/
 }
 
 .gallery > .caption {
@@ -484,14 +484,14 @@ html.grid-mode .icon-list {
 .gallery-images {
     display: flex;
     flex-direction: column;
-    gap: var(--gallery-gap, 4px);
+    gap: var(--space-panel, 4px);
 }
 
 /* Row: flex container that sizes figures by aspect ratio */
 
 .gallery-row {
     display: flex;
-    gap: var(--gallery-gap, 4px);
+    gap: var(--space-panel, 4px);
 }
 
 .gallery-row > figure {
@@ -583,4 +583,8 @@ html.grid-mode .icon-list {
 
 ::view-transition-new(content) {
     animation: content-fade-in 0.25s ease-out forwards;
+}
+
+.content-page {
+    font-size: 1.2rem;
 }
