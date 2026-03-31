@@ -1,0 +1,12 @@
+---
+interface Props {
+  width?: number;
+}
+
+const { width = 2 } = Astro.props;
+const w = `${(1 / width) * 100}%`;
+---
+
+<div class="center-wrap" style={`--center-width: min(${w}, 100%);`}>
+  <slot />
+</div>

@@ -1,3 +1,5 @@
+export { default as Center } from './Center.astro';
+export { default as Space } from './Space.astro';
 export { default as VideoEmbed } from './VideoEmbed.astro';
 export { default as TwoColumn } from './TwoColumn.astro';
 export { default as Columns } from './Columns.astro';

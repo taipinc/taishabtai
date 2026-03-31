@@ -17,13 +17,14 @@ export async function getStaticPaths() {
 
 const { item } = Astro.props;
 const { Content } = await render(item);
-const { slug, title, year, medium, hero, iframe } = item.data;
+const { slug, title, year, medium, hero, iframe, background } = item.data;
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 ---
 
 <GridContentLayout
     title={`${title} — Shabtai Pinchevsky`}
     activeSlug={slug}
+    background={background}
 >
     <div class="content-page">
         <header class="project-header">

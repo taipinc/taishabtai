@@ -10,9 +10,10 @@ import "../styles/grid-layout.css";
 interface Props {
     title?: string;
     activeSlug?: string;
+    background?: string;
 }
 
-const { title = "Shabtai Pinchevsky", activeSlug } = Astro.props;
+const { title = "Shabtai Pinchevsky", activeSlug, background } = Astro.props;
 
 interface GridItem {
     title: string;
@@ -47,7 +48,7 @@ const currentPath = Astro.url.pathname.replace(/\/$/, "");
         <Font cssVariable="--font-heading" preload />
         <ClientRouter />
     </head>
-    <body data-base={base}>
+    <body data-base={base} style={background ? `--color-bg: ${background}; --color-sidebar-bg: ${background};` : ''}>
         <div class="grid-content-layout">
             <aside class="content-nav" transition:persist>
                 <header class="grid-header">
@@ -87,7 +88,7 @@ const currentPath = Astro.url.pathname.replace(/\/$/, "");
                     ))}
                 </div>
             </aside>
-            <main class="content-panel" transition:name="content-panel">
+            <main class="content-panel" transition:name="content-panel" data-bg={background ?? ''}>
                 <slot />
             </main>
             <div class="lightbox" id="lightbox">
@@ -232,9 +233,22 @@ const currentPath = Astro.url.pathname.replace(/\/$/, "");
                 }
             });
 
+            function applyBackground() {
+                const bg = document.querySelector(".content-panel")?.getAttribute("data-bg") || "";
+                if (bg) {
+                    document.body.style.setProperty("--color-bg", bg);
+                    document.body.style.setProperty("--color-sidebar-bg", bg);
+                } else {
+                    document.body.style.removeProperty("--color-bg");
+                    document.body.style.removeProperty("--color-sidebar-bg");
+                }
+            }
+
             document.addEventListener("astro:after-swap", () => {
                 const sidebar = document.querySelector(".content-nav .col-scroll");
                 if (sidebar) sidebar.scrollTop = sidebarScrollTop;
+
+                applyBackground();
 
                 const path = window.location.pathname.replace(/\/$/, "");
                 document.querySelectorAll(".content-nav .project-grid-item").forEach((a) => {

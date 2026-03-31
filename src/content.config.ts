@@ -10,6 +10,7 @@ const projectSchema = ({ image }: { image: Function }) =>
     iframe: z.string().optional(),
     slug: z.string(),
     summary: z.string().optional(),
+    background: z.string().optional(),
   });
 
 const projects = defineCollection({
