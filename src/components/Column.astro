@@ -1,0 +1,11 @@
+---
+interface Props {
+  width?: number;
+}
+
+const { width = 1 } = Astro.props;
+---
+
+<div class="column" style={`grid-column: span ${width};`}>
+  <slot />
+</div>

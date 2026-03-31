@@ -357,7 +357,8 @@ html.grid-mode .icon-list {
 /* Content flow spacing */
 
 .project-content {
-    line-height: 1.2em;
+    font-size: 1rem;
+    line-height: 1.4em;
 }
 
 .project-content > * + * {
@@ -469,6 +470,7 @@ html.grid-mode .icon-list {
     color: var(--color-muted);
     font-size: 0.75rem;
     margin-top: var(--space-xs);
+    line-height: 1.2em;
 }
 
 /* Gallery */
@@ -542,7 +544,7 @@ html.grid-mode .icon-list {
     border: 0;
 }
 
-/* Two column */
+/* Two column (legacy) */
 
 .two-column {
     display: flex;
@@ -551,6 +553,21 @@ html.grid-mode .icon-list {
 .two-column > * {
     flex: 1;
     min-width: 0;
+}
+
+.two-column p + p {
+    margin-bottom: var(--space-md);
+}
+
+/* Columns grid */
+
+.columns {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.columns p + p {
+    margin-bottom: var(--space-md);
 }
 
 /* View transition: subtle slide + fade for content */
@@ -583,8 +600,4 @@ html.grid-mode .icon-list {
 
 ::view-transition-new(content) {
     animation: content-fade-in 0.25s ease-out forwards;
-}
-
-.content-page {
-    font-size: 1.2rem;
 }

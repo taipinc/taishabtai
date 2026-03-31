@@ -5,20 +5,25 @@ medium: "Video and sculpture"
 hero: "../../assets/images/if-the-fire-within-our-eyes/main.jpeg"
 slug: "if-the-fire-within-our-eyes"
 ---
-import { Figure, Gallery, Row } from '../../components';
+import { Figure, Gallery, Row, Columns, Column } from '../../components';
 
-<div class="text-lg">
+<Columns>
+<Column width={2}>
+  <p class="text-lg">
     Expanding on *On the Optics of Mount Scopus*, the exhibition further explore
-</div>
-
+  </p>
+</Column>
+<Column>
 <Figure src="if-the-fire-within-our-eyes/Stereoscope-30.jpeg" alt="Stereoscope 30° - roads, Mandatory parks, and other layers" />
 
 <Figure src="if-the-fire-within-our-eyes/installation01.jpg" alt="Installation view"/>
 
 <Gallery layout="justify" gap="0.8rem" caption="Stereoscope 60° - the Mount Scopus Viewshed">
-    <Figure src="if-the-fire-within-our-eyes/Stereoscope 60 02.jpeg" />
-    <Row>
+  <Figure src="if-the-fire-within-our-eyes/Stereoscope 60 02.jpeg" />
+  <Row>
     <Figure src="if-the-fire-within-our-eyes/Stereoscope 60 01.jpeg" />
     <Figure src="if-the-fire-within-our-eyes/Stereoscope 60 03.jpg" />
-    </Row>
+  </Row>
 </Gallery>
+</Column>
+</Columns>
