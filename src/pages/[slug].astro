@@ -4,7 +4,7 @@ import { Image } from "astro:assets";
 import GridContentLayout from "../layouts/GridContentLayout.astro";
 
 export async function getStaticPaths() {
-    const collections = ["ongoing", "projects", "interactive", "other-works"] as const;
+    const collections = ["ongoing", "projects", "interactive", "other-works", "teaching-tools"] as const;
     const allItems = (
         await Promise.all(collections.map((c) => getCollection(c)))
     ).flat();
@@ -18,6 +18,7 @@ export async function getStaticPaths() {
 const { item } = Astro.props;
 const { Content } = await render(item);
 const { slug, title, year, medium, hero, iframe, background } = item.data;
+const iframeSrc = iframe || (item.data as any).url;
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 ---
 
@@ -34,9 +35,9 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
             </div>
             <a href={`${base}/`} class="close-btn" aria-label="Close">&times;</a>
         </header>
-        {iframe ? (
+        {iframeSrc ? (
             <div class="project-body iframe-section">
-                <iframe class="project-iframe" src={iframe} title={title}></iframe>
+                <iframe class="project-iframe" src={iframeSrc} title={title}></iframe>
             </div>
         ) : (
             <div class="project-body">

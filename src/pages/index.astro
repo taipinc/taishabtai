@@ -5,7 +5,8 @@ import type { ImageMetadata } from "astro";
 import GridContentLayout from "../layouts/GridContentLayout.astro";
 import { recentItems } from "../data/recent";
 
-interface GridItem {
+interface WorkItem {
+    kind: "work";
     title: string;
     slug: string;
     year: number;
@@ -15,33 +16,22 @@ interface GridItem {
     summary?: string;
 }
 
-const interactive = (await getCollection("interactive")).sort(
-    (a, b) => b.data.year - a.data.year,
-);
-const otherWorks = (await getCollection("other-works")).sort(
-    (a, b) => b.data.year - a.data.year,
-);
-const teachingTools = (await getCollection("teaching-tools")).sort(
-    (a, b) => b.data.year - a.data.year,
-);
+interface MediaItem {
+    kind: "media";
+    year: number;
+    type: "video" | "image";
+    src: string;
+    caption: string;
+    thumb?: ImageMetadata;
+    thumbUrl?: string;
+}
 
-const toGridItems = (items: any[], external = false): GridItem[] =>
-    items.map((p) => ({
-        title: p.data.title,
-        slug: p.data.slug,
-        year: p.data.year,
-        hero: p.data.hero,
-        url: p.data.url,
-        external,
-        summary: p.data.summary,
-    }));
+type GridItem = WorkItem | MediaItem;
 
 function getEmbedUrl(url: string): string {
     const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
     if (vimeoMatch) return `https://player.vimeo.com/video/${vimeoMatch[1]}`;
-    const youtubeMatch = url.match(
-        /(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]+)/,
-    );
+    const youtubeMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]+)/);
     if (youtubeMatch) return `https://www.youtube.com/embed/${youtubeMatch[1]}`;
     return url;
 }
@@ -51,110 +41,102 @@ function getVimeoThumb(url: string): string | null {
     return match ? `https://vumbnail.com/${match[1]}.jpg` : null;
 }
 
-// Resolve thumbnail images from src/assets/recent/
+const ongoing      = (await getCollection("ongoing")).sort((a, b) => b.data.year - a.data.year);
+const projects     = (await getCollection("projects")).sort((a, b) => b.data.year - a.data.year);
+const interactive  = (await getCollection("interactive")).sort((a, b) => b.data.year - a.data.year);
+const otherWorks   = (await getCollection("other-works")).sort((a, b) => b.data.year - a.data.year);
+const teachingTools = (await getCollection("teaching-tools")).sort((a, b) => b.data.year - a.data.year);
+
+const toWorkItems = (items: any[], external = false): WorkItem[] =>
+    items.map((p) => ({
+        kind: "work",
+        title: p.data.title,
+        slug: p.data.slug,
+        year: p.data.year,
+        hero: p.data.hero,
+        url: p.data.url,
+        external,
+        summary: p.data.summary,
+    }));
+
+// Resolve recent media thumbnails
 const recentImages = import.meta.glob<{ default: ImageMetadata }>(
     "../assets/recent/*.{jpg,jpeg,png,webp,gif}",
 );
 
-const resolvedRecent = await Promise.all(
+const recentMediaItems: MediaItem[] = await Promise.all(
     recentItems.map(async (item) => {
-        let thumbImage: ImageMetadata | undefined;
-        let srcImage: ImageMetadata | undefined;
-
+        let thumb: ImageMetadata | undefined;
         if (item.thumb) {
             const key = `../assets/recent/${item.thumb}`;
-            if (recentImages[key]) {
-                thumbImage = (await recentImages[key]()).default;
-            }
+            if (recentImages[key]) thumb = (await recentImages[key]()).default;
         }
-        if (item.src) {
-            const key = `../assets/recent/${item.src}`;
-            if (recentImages[key]) {
-                srcImage = (await recentImages[key]()).default;
-            }
+        if (item.video) {
+            return {
+                kind: "media",
+                year: item.year ?? 2025,
+                type: "video",
+                src: getEmbedUrl(item.video),
+                caption: item.caption ?? "",
+                thumb,
+                thumbUrl: !thumb ? (getVimeoThumb(item.video) ?? undefined) : undefined,
+            } satisfies MediaItem;
         }
-
-        return { ...item, thumbImage, srcImage };
-    }),
+        const srcKey = item.src ? `../assets/recent/${item.src}` : null;
+        const srcImage = srcKey && recentImages[srcKey] ? (await recentImages[srcKey]()).default : undefined;
+        return {
+            kind: "media",
+            year: item.year ?? 2025,
+            type: "image",
+            src: srcImage?.src ?? "",
+            caption: item.caption ?? "",
+            thumb: srcImage,
+        } satisfies MediaItem;
+    })
 );
 
+const allItems: GridItem[] = [
+    ...toWorkItems(ongoing),
+    ...toWorkItems(projects),
+    ...toWorkItems(interactive),
+    ...toWorkItems(otherWorks),
+    ...toWorkItems(teachingTools),
+    ...recentMediaItems,
+].sort((a, b) => b.year - a.year);
+
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
-const otherWorksItems = toGridItems(otherWorks);
-const interactiveItems = toGridItems(interactive);
-const teachingToolItems = toGridItems(teachingTools, true);
 ---
 
 <GridContentLayout>
     <div class="home-content">
         <div class="col-header"></div>
-        <div class="home-columns">
-            <!-- Column 2: Other Works -->
-            <div class="project-grid-col">
-                <div class="col-scroll">
-                    <h2 class="col-heading">Other Works</h2>
-                    {
-                        otherWorksItems.map((item) => (
-                            <a
-                                href={`${base}/${item.slug}`}
-                                class="project-grid-item"
+        <div class="home-masonry-scroll">
+            <div class="home-masonry">
+                {allItems.map((item) => {
+                    if (item.kind === "media") {
+                        return (
+                            <button
+                                class="project-grid-item recent-media"
+                                data-type={item.type}
+                                data-src={item.src}
+                                data-caption={item.caption}
                             >
-                                {item.hero ? (
-                                    <div class="img-tint">
-                                        <Image
-                                            src={item.hero}
-                                            alt={item.title}
-                                            loading="lazy"
-                                            width={800}
-                                            quality={80}
-                                        />
-                                    </div>
-                                ) : (
-                                    <div class="grid-placeholder" />
-                                )}
-                                <div class="project-grid-label">
-                                    {item.title}
+                                <div class="img-tint">
+                                    {item.thumb ? (
+                                        <Image src={item.thumb} alt={item.caption} loading="lazy" width={800} quality={80} />
+                                    ) : item.thumbUrl ? (
+                                        <img src={item.thumbUrl} alt={item.caption} loading="lazy" />
+                                    ) : (
+                                        <div class="grid-placeholder" />
+                                    )}
+                                    {item.type === "video" && <div class="video-play-icon">&#9654;</div>}
                                 </div>
-                                {item.summary && <div class="project-grid-summary">{item.summary}</div>}
-                            </a>
-                        ))
+                                {item.caption && <div class="project-grid-label">{item.caption}</div>}
+                            </button>
+                        );
                     }
-                </div>
-            </div>
-
-            <!-- Column 3: Interactive / Teaching Tools -->
-            <div class="project-grid-col">
-                <div class="col-scroll">
-                    <h2 class="col-heading">Interactive</h2>
-                    {
-                        interactiveItems.map((item) => (
-                            <a
-                                href={`${base}/${item.slug}`}
-                                class="project-grid-item"
-                            >
-                                {item.hero ? (
-                                    <div class="img-tint">
-                                        <Image
-                                            src={item.hero}
-                                            alt={item.title}
-                                            loading="lazy"
-                                            width={800}
-                                            quality={80}
-                                        />
-                                    </div>
-                                ) : (
-                                    <div class="grid-placeholder" />
-                                )}
-                                <div class="project-grid-label">
-                                    {item.title}
-                                </div>
-                                {item.summary && <div class="project-grid-summary">{item.summary}</div>}
-                            </a>
-                        ))
-                    }
-
-                    <h2 class="col-heading">Teaching Tools</h2>
-                    {
-                        teachingToolItems.map((item) => (
+                    if (item.external) {
+                        return (
                             <a
                                 href={item.url || "#"}
                                 target="_blank"
@@ -163,105 +145,31 @@ const teachingToolItems = toGridItems(teachingTools, true);
                             >
                                 {item.hero ? (
                                     <div class="img-tint">
-                                        <Image
-                                            src={item.hero}
-                                            alt={item.title}
-                                            loading="lazy"
-                                            width={800}
-                                            quality={80}
-                                        />
-                                        <div class="external-link-icon">
-                                            &#8599;
-                                        </div>
+                                        <Image src={item.hero} alt={item.title} loading="lazy" width={800} quality={80} />
+                                        <div class="external-link-icon">&#8599;</div>
                                     </div>
                                 ) : (
                                     <div class="grid-placeholder" />
                                 )}
-                                <div class="project-grid-label">
-                                    {item.title}
-                                </div>
+                                <div class="project-grid-label">{item.title}</div>
                                 {item.summary && <div class="project-grid-summary">{item.summary}</div>}
                             </a>
-                        ))
+                        );
                     }
-                </div>
-            </div>
-
-            <!-- Column 4: Info / Recent -->
-            <div class="project-grid-col">
-                <div class="col-scroll">
-                    <h2 class="col-heading">Info</h2>
-                    <div class="info-section">
-                        <p>
-                            I'm a photographer and digital media artist whose
-                            practice examines the politics of image-making in
-                            contested geographies, particularly
-                            Israel/Palestine. I work across 3D modeling,
-                            mapping, drone photography, and archival research to
-                            examine photography's entanglements with colonial
-                            and territorial politics.
-                        </p><p>
-                            I'm an Assistant Professor of Photography at Parsons
-                            School of Design, The New School.
-                        </p>
-                    </div>
-
-                    <h2 class="col-heading">Recent</h2>
-                    {
-                        resolvedRecent.map((item, i) =>
-                            item.srcImage ? (
-                                <button
-                                    class="recent-media"
-                                    data-index={i}
-                                    data-type="image"
-                                    data-src={item.srcImage.src}
-                                    data-caption={item.caption || ""}
-                                >
-                                    <div class="img-tint">
-                                        <Image
-                                            src={item.srcImage}
-                                            alt={item.caption || ""}
-                                            loading="lazy"
-                                            width={800}
-                                            quality={80}
-                                        />
-                                    </div>
-                                </button>
-                            ) : item.video ? (
-                                <button
-                                    class="recent-media"
-                                    data-index={i}
-                                    data-type="video"
-                                    data-src={getEmbedUrl(item.video)}
-                                    data-caption={item.caption || ""}
-                                >
-                                    <div class="img-tint">
-                                        {item.thumbImage ? (
-                                            <Image
-                                                src={item.thumbImage}
-                                                alt={item.caption || ""}
-                                                loading="lazy"
-                                                width={800}
-                                                quality={80}
-                                            />
-                                        ) : getVimeoThumb(item.video) ? (
-                                            <img
-                                                src={getVimeoThumb(item.video)!}
-                                                alt={item.caption || ""}
-                                                loading="lazy"
-                                            />
-                                        ) : (
-                                            <div class="grid-placeholder" />
-                                        )}
-                                        <div class="video-play-icon">
-                                            &#9654;
-                                        </div>
-                                    </div>
-                                </button>
-                            ) : null,
-                        )
-                    }
-                </div>
+                    return (
+                        <a href={`${base}/${item.slug}`} class="project-grid-item">
+                            {item.hero ? (
+                                <div class="img-tint">
+                                    <Image src={item.hero} alt={item.title} loading="lazy" width={800} quality={80} />
+                                </div>
+                            ) : (
+                                <div class="grid-placeholder" />
+                            )}
+                            <div class="project-grid-label">{item.title}</div>
+                            {item.summary && <div class="project-grid-summary">{item.summary}</div>}
+                        </a>
+                    );
+                })}
             </div>
         </div>
     </div>
