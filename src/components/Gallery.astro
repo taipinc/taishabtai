@@ -1,15 +1,16 @@
 ---
 interface Props {
     caption?: string;
+    alt?: string;
     gap?: string;
 }
 
-const { caption, gap = "4px" } = Astro.props;
+const { caption, alt, gap = "4px" } = Astro.props;
 ---
 
 <div class="gallery" style={`--gallery-gap: ${gap}`}>
     <div class="gallery-images">
         <slot />
     </div>
-    {caption && <p class="caption">{caption}</p>}
+    {(alt || caption) && <figcaption class="caption">{alt || caption}</figcaption>}
 </div>

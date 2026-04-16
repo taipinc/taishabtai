@@ -372,7 +372,7 @@ html.grid-mode .icon-list {
 }
 
 .project-content figure {
-    margin: 0 0 var(--space-md) 0;
+    margin-inline: 0;
     cursor: zoom-in;
 }
 
@@ -480,7 +480,7 @@ html.grid-mode .icon-list {
 }
 
 .gallery > .caption {
-    margin-top: var(--space-sm);
+    margin-top: var(--space-xs);
 }
 
 .gallery-images {

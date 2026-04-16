@@ -82,13 +82,16 @@ html:has(.grid-main) {
     line-height: 1.5;
 }
 
-.info-section p {
-    margin-bottom: var(--space-sm);
+.info-section p + p {
+    margin-top: var(--space-sm);
 }
 
 .project-grid-item {
     display: block;
-    margin-bottom: var(--space-sm);
+}
+
+.project-grid-item + .project-grid-item {
+    margin-top: var(--space-sm);
 }
 
 .project-grid-item img {
