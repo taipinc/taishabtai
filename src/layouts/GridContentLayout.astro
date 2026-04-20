@@ -4,6 +4,7 @@ import { Image } from "astro:assets";
 import type { ImageMetadata } from "astro";
 import { ClientRouter } from "astro:transitions";
 import { Font } from "astro:assets";
+import ShortBio from "../components/ShortBio.astro";
 import "../styles/global.css";
 import "../styles/grid-layout.css";
 
@@ -15,31 +16,16 @@ interface Props {
 
 const { title = "Shabtai Pinchevsky", activeSlug, background } = Astro.props;
 
-interface NavItem {
-    title: string;
-    slug: string;
-    year: number;
-    navThumb?: ImageMetadata;
-    url?: string;
-    external?: boolean;
-}
-
-const toNavItems = (items: any[], external = false): NavItem[] =>
-    items.map((p) => ({
-        title: p.data.title,
-        slug: p.data.slug,
-        year: p.data.year,
-        navThumb: p.data.icon ?? p.data.hero,
-        url: p.data.url,
-        external,
-    }));
+const NAV_SECTIONS = [
+    { type: "ongoing", label: "Ongoing" },
+    { type: "project", label: "Projects" },
+    { type: "interactive", label: "Interactive" },
+    { type: "other-work", label: "Other Works" },
+    { type: "teaching-tool", label: "Teaching Tools" },
+] as const;
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
-const ongoing      = (await getCollection("ongoing")).sort((a, b) => b.data.year - a.data.year);
-const projects     = (await getCollection("projects")).sort((a, b) => b.data.year - a.data.year);
-const interactive  = (await getCollection("interactive")).sort((a, b) => b.data.year - a.data.year);
-const otherWorks   = (await getCollection("other-works")).sort((a, b) => b.data.year - a.data.year);
-const teachingTools = (await getCollection("teaching-tools")).sort((a, b) => b.data.year - a.data.year);
+const allPosts = (await getCollection("posts")).sort((a, b) => b.data.year - a.data.year);
 const currentPath = Astro.url.pathname.replace(/\/$/, "");
 ---
 
@@ -60,60 +46,28 @@ const currentPath = Astro.url.pathname.replace(/\/$/, "");
                     <a href={`${base}/`} class="artist-name">Shabtai Pinchevsky</a>
                 </header>
                 <nav class="col-scroll">
-                    <h2 class="col-heading">Ongoing</h2>
-                    {toNavItems(ongoing).map((item) => (
-                        <a
-                            href={`${base}/${item.slug}`}
-                            class:list={["project-grid-item", { active: currentPath === `${base}/${item.slug}` }]}
-                        >
-                            {item.navThumb && <Image src={item.navThumb} alt="" class="nav-thumb" width={96} height={96} quality={90} loading="lazy" />}
-                            <div class="project-grid-label">{item.title}</div>
-                        </a>
-                    ))}
-
-                    <h2 class="col-heading">Projects</h2>
-                    {toNavItems(projects).map((item) => (
-                        <a
-                            href={`${base}/${item.slug}`}
-                            class:list={["project-grid-item", { active: currentPath === `${base}/${item.slug}` }]}
-                        >
-                            {item.navThumb && <Image src={item.navThumb} alt="" class="nav-thumb" width={96} height={96} quality={90} loading="lazy" />}
-                            <div class="project-grid-label">{item.title}</div>
-                        </a>
-                    ))}
-
-                    <h2 class="col-heading">Interactive</h2>
-                    {toNavItems(interactive).map((item) => (
-                        <a
-                            href={`${base}/${item.slug}`}
-                            class:list={["project-grid-item", { active: currentPath === `${base}/${item.slug}` }]}
-                        >
-                            {item.navThumb && <Image src={item.navThumb} alt="" class="nav-thumb" width={96} height={96} quality={90} loading="lazy" />}
-                            <div class="project-grid-label">{item.title}</div>
-                        </a>
-                    ))}
-
-                    <h2 class="col-heading">Other Works</h2>
-                    {toNavItems(otherWorks).map((item) => (
-                        <a
-                            href={`${base}/${item.slug}`}
-                            class:list={["project-grid-item", { active: currentPath === `${base}/${item.slug}` }]}
-                        >
-                            {item.navThumb && <Image src={item.navThumb} alt="" class="nav-thumb" width={96} height={96} quality={90} loading="lazy" />}
-                            <div class="project-grid-label">{item.title}</div>
-                        </a>
-                    ))}
-
-                    <h2 class="col-heading">Teaching Tools</h2>
-                    {toNavItems(teachingTools).map((item) => (
-                        <a
-                            href={`${base}/${item.slug}`}
-                            class:list={["project-grid-item", { active: currentPath === `${base}/${item.slug}` }]}
-                        >
-                            {item.navThumb && <Image src={item.navThumb} alt="" class="nav-thumb" width={96} height={96} quality={90} loading="lazy" />}
-                            <div class="project-grid-label">{item.title}</div>
-                        </a>
-                    ))}
+                    <ShortBio />
+                    {NAV_SECTIONS.map(({ type, label }) => {
+                        const items = allPosts.filter((p) => p.data.type === type && p.data.slug);
+                        if (items.length === 0) return null;
+                        return (
+                            <>
+                                <h2 class="col-heading">{label}</h2>
+                                {items.map((item) => {
+                                    const navThumb = item.data.icon ?? item.data.hero;
+                                    return (
+                                        <a
+                                            href={`${base}/${item.data.slug}`}
+                                            class:list={["project-grid-item", { active: currentPath === `${base}/${item.data.slug}` }]}
+                                        >
+                                            {navThumb && <Image src={navThumb} alt="" class="nav-thumb" width={96} height={96} quality={90} loading="lazy" />}
+                                            <div class="project-grid-label">{item.data.title}</div>
+                                        </a>
+                                    );
+                                })}
+                            </>
+                        );
+                    })}
                 </nav>
             </aside>
             <main class="content-panel" transition:name="content-panel" data-bg={background ?? ''}>
@@ -290,6 +244,42 @@ const currentPath = Astro.url.pathname.replace(/\/$/, "");
                     document.querySelector(".content-panel")?.scrollTo(0, 0);
                 }
             });
+        </script>
+
+        <script>
+            function initMasonry() {
+                const grid = document.querySelector(".home-masonry") as HTMLElement | null;
+                if (!grid) return;
+
+                const cs = getComputedStyle(grid);
+                const rowGap = parseFloat(cs.rowGap) || 0;
+                const rowSize = parseFloat(cs.gridAutoRows) || 10;
+
+                function updateAll() {
+                    const items = [...grid.querySelectorAll<HTMLElement>(".project-grid-item")];
+                    // Give all items room to expand to natural height
+                    items.forEach(item => { item.style.gridRowEnd = "span 1000"; });
+                    // Force reflow so the browser computes natural heights
+                    void grid.offsetHeight;
+                    // Measure all, then set correct spans (batch reads before writes)
+                    const heights = items.map(item => item.getBoundingClientRect().height);
+                    items.forEach((item, i) => {
+                        item.style.gridRowEnd = `span ${Math.max(1, Math.ceil((heights[i] + rowGap) / (rowSize + rowGap)))}`;
+                    });
+                }
+
+                updateAll();
+
+                grid.querySelectorAll("img").forEach(img => {
+                    if (!img.complete) img.addEventListener("load", updateAll, { once: true });
+                });
+
+                let t: ReturnType<typeof setTimeout>;
+                window.addEventListener("resize", () => { clearTimeout(t); t = setTimeout(updateAll, 100); });
+            }
+
+            initMasonry();
+            document.addEventListener("astro:after-swap", initMasonry);
         </script>
     </body>
 </html>

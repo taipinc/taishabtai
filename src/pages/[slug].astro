@@ -4,21 +4,19 @@ import { Image } from "astro:assets";
 import GridContentLayout from "../layouts/GridContentLayout.astro";
 
 export async function getStaticPaths() {
-    const collections = ["ongoing", "projects", "interactive", "other-works", "teaching-tools"] as const;
-    const allItems = (
-        await Promise.all(collections.map((c) => getCollection(c)))
-    ).flat();
-
-    return allItems.map((item) => ({
-        params: { slug: item.data.slug },
-        props: { item },
-    }));
+    const allPosts = await getCollection("posts");
+    return allPosts
+        .filter((item) => item.data.slug)
+        .map((item) => ({
+            params: { slug: item.data.slug },
+            props: { item },
+        }));
 }
 
 const { item } = Astro.props;
 const { Content } = await render(item);
 const { slug, title, year, medium, hero, iframe, background } = item.data;
-const iframeSrc = iframe || (item.data as any).url;
+const iframeSrc = iframe;
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 ---
 

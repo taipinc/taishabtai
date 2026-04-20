@@ -22,7 +22,7 @@ html:has(.grid-main) {
 .grid-header .artist-name {
     font-family: var(--font-heading);
     font-weight: 400;
-    font-size: 1.4rem;
+    font-size: 1.6rem;
     line-height: 1;
     /*color: var(--color-highlight);*/
 }
@@ -57,7 +57,7 @@ html:has(.grid-main) {
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    gap: var(--space-xs);
+    gap: var(--space-xxs);
     padding-bottom: var(--space-lg);
 }
 
@@ -69,10 +69,6 @@ html:has(.grid-main) {
     padding: 0.4rem var(--space-panel);
     margin: 0 calc(-1 * var(--space-panel));
     margin-top: var(--space-sm);
-    position: sticky;
-    top: 0;
-    z-index: 1;
-    background: var(--color-bg);
     flex-shrink: 0;
     border-bottom: 1px solid var(--color-text);
 }
@@ -92,7 +88,7 @@ html:has(.grid-main) {
 }
 
 .project-grid-item + .project-grid-item {
-    margin-top: var(--space-sm);
+    margin-top: var(--space-xxs);
 }
 
 .project-grid-item img:not(.nav-thumb) {
@@ -216,19 +212,19 @@ html:has(.grid-main) {
 
 .project-grid-label {
     font-family: var(--font-heading);
-    font-size: 0.9rem;
-    font-weight: 400;
+    font-size: 0.7rem;
+    font-weight: 600;
     line-height: 1.3;
-    margin-top: 0.1rem;
-    color: var(--color-text);
+    /*margin-top: 0.1rem;*/
+    color: var(--color-highlight);
 }
 
 .project-grid-summary {
     font-family: var(--font-body);
     font-size: 0.7rem;
     line-height: 1.4;
-    color: var(--color-text);
-    margin-top: 0.1rem;
+    color: var(--color-highlight);
+    /*margin-top: 0.4rem;*/
 }
 
 .col-info {
@@ -456,35 +452,36 @@ html:has(.grid-main) {
     flex: 1;
     min-height: 0;
     overflow-y: auto;
-    padding: var(--space-lg);
+    padding: var(--space-md);
 }
 
 .home-masonry {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: var(--space-lg);
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-auto-rows: 10px;
+    grid-auto-flow: dense;
     align-items: start;
+    gap: 6rem var(--space-lg);
 }
 
 /* Card: column flex, grows downward from top */
 .home-masonry .project-grid-item {
     display: flex;
     flex-direction: column;
+    /*background: #f0efed;*/
+    /*padding: var(--space-sm);*/
+    gap: var(--space-sm);
 }
 
-/* Image area: fixed 4:3 proportion, centered content */
+/* Image area: natural size, no forced ratio */
 .home-masonry .project-grid-item .img-tint {
-    aspect-ratio: 4 / 3;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    overflow: hidden;
 }
 
 .home-masonry .project-grid-item .img-tint img {
-    max-width: 100%;
-    max-height: 100%;
-    width: auto;
+    width: 100%;
     height: auto;
+    display: block;
     filter: none;
 }
 
@@ -496,12 +493,85 @@ html:has(.grid-main) {
 /* Label: natural height, bottom of card */
 .home-masonry .project-grid-label {
     flex-shrink: 0;
-    padding: 0.25rem 0;
+    padding: 0 0;
 }
 
-/* Summary hidden */
+/* Summary hidden by default */
 .home-masonry .project-grid-summary {
     display: none;
+}
+
+/* Column spans */
+.home-masonry .project-grid-item[data-size="2"] {
+    grid-column: span 2;
+}
+.home-masonry .project-grid-item[data-size="3"] {
+    grid-column: span 3;
+}
+
+/* --- Wide layout: project and ongoing (image left, text right) --- */
+
+.home-masonry .project-grid-item[data-type="project"],
+.home-masonry .project-grid-item[data-type="ongoing"] {
+    flex-direction: row;
+}
+
+.home-masonry .project-grid-item[data-type="project"] .img-tint,
+.home-masonry .project-grid-item[data-type="ongoing"] .img-tint {
+    flex: 0 0 70%;
+}
+
+.home-masonry .project-grid-item[data-type="project"] .img-tint img,
+.home-masonry .project-grid-item[data-type="ongoing"] .img-tint img {
+    width: 100%;
+    height: auto;
+}
+
+.home-masonry .project-grid-item[data-type="project"] .project-grid-text,
+.home-masonry .project-grid-item[data-type="ongoing"] .project-grid-text {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: var(--space-sm);
+    /*padding: var(--space-sm);*/
+}
+
+.home-masonry .project-grid-item[data-type="project"] .project-grid-summary,
+.home-masonry .project-grid-item[data-type="ongoing"] .project-grid-summary {
+    display: block;
+}
+
+/* --- Text card: tall, no image, no border --- */
+
+.home-masonry .project-grid-item--text {
+    display: flex;
+    flex-direction: column;
+    text-decoration: none;
+}
+
+.home-masonry .project-grid-item--text .project-grid-label {
+    font-family: var(--font-heading);
+    /*font-size: 1.2rem;*/
+}
+
+.home-masonry .project-grid-item--text .project-grid-summary {
+    display: block;
+    /*margin-top: 0.4rem;*/
+}
+
+/* ---- Short bio ---- */
+
+.short-bio {
+    padding: var(--space-sm) 0;
+    font-size: 0.8rem;
+    line-height: 1.5;
+    color: var(--color-text);
+    flex-shrink: 0;
+}
+
+.short-bio p + p {
+    margin-top: var(--space-sm);
 }
 
 /* ---- Sidebar text-only nav ---- */
@@ -522,6 +592,7 @@ html:has(.grid-main) {
 
 .content-nav .project-grid-label {
     font-family: var(--font-body);
+    color: var(--color-text);
     font-size: 0.85rem;
     font-weight: 400;
 }

@@ -34,13 +34,9 @@ Artist portfolio site built with Astro + MDX, static output for GitHub Pages.
 - `src/pages/artist-statement.astro` — artist statement page
 
 ## Homepage Grid Layout
-The homepage uses a 4-column independently-scrolling grid:
-- **Column 1 (sidebar, 30%)**: Ongoing + Selected Works — persistent across all pages via `transition:persist`
-- **Column 2**: Other Works
-- **Column 3**: Interactive + Teaching Tools (Teaching Tools open as external links with ↗ icon)
-- **Column 4**: Recent — video/image thumbnails that open in a lightbox
-
-Each column scrolls independently. Scroll positions are preserved across navigation via `astro:before-swap`/`astro:after-swap` events.
+The homepage uses a 2-column independently-scrolling grid:
+- **content-nav**: Navigation `transition:persist`
+- **home-content**: Grid of works
 
 ## Image Treatment
 - Homepage thumbnails use B&W filter (`grayscale(1) brightness(80%) contrast(110%)`) with a color tint overlay (`.img-tint` wrapper + `::after` pseudo-element with `mix-blend-mode: color`)

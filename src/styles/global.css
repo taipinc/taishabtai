@@ -8,9 +8,10 @@
     --color-accent: #333333;
     /*--color-sidebar-bg: #fcf8f6;*/
     --color-tint: #191a47;
-    --color-highlight: #0033ff;
+    --color-highlight: #ee5f4a;
     --color-sidebar-bg: #ffffff;
 
+    --space-xxs: 0.15rem;
     --space-xs: 0.25rem;
     --space-sm: 0.5rem;
     --space-md: 1rem;
