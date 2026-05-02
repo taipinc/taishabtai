@@ -19,20 +19,6 @@ function getVimeoThumb(url: string): string | null {
     return match ? `https://vumbnail.com/${match[1]}.jpg` : null;
 }
 
-function getDefaultSize(type: string): number {
-    if (type === "project" || type === "ongoing") return 2;
-    return 1;
-}
-
-function seededOffset(seed: string, max: number): number {
-    let hash = 5381;
-    for (let i = 0; i < seed.length; i++) {
-        hash = ((hash << 5) + hash) ^ seed.charCodeAt(i);
-        hash |= 0;
-    }
-    return Math.abs(hash) % (max + 1);
-}
-
 const allPosts = (await getCollection("posts")).sort(
     (a, b) => b.data.year - a.data.year,
 );
@@ -64,9 +50,6 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
                                 caption,
                                 background,
                             } = post.data;
-                            const size = post.data.size ?? getDefaultSize(type);
-                            const sizeAttr = size > 1 ? size : undefined;
-
                             if (type === "video") {
                                 let thumbImg: ImageMetadata | undefined;
                                 if (thumb) {
@@ -88,8 +71,6 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
                                         data-type="video"
                                         data-src={embedUrl}
                                         data-caption={caption ?? ""}
-                                        data-size={sizeAttr}
-                                        style={`transform: translateY(${seededOffset(slug ?? title, 6)}rem)`}
                                     >
                                         <div class="img-tint">
                                             {thumbImg ? (
@@ -123,7 +104,6 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
                             }
 
                             if (type === "text") {
-                                const offset = seededOffset(slug ?? title, 60);
                                 return (
                                     <a
                                         href={
@@ -131,14 +111,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
                                         }
                                         class="project-grid-item project-grid-item--text"
                                         data-type="text"
-                                        style={[
-                                            background
-                                                ? `background: ${background}`
-                                                : "",
-                                            `transform: translateY(${offset}px)`,
-                                        ]
-                                            .filter(Boolean)
-                                            .join("; ")}
+                                        style={background ? `background: ${background}` : undefined}
                                     >
                                         <div class="project-grid-label">
                                             {title}
@@ -157,8 +130,6 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
                                     href={slug ? `${base}/${slug}` : undefined}
                                     class="project-grid-item"
                                     data-type={type}
-                                    data-size={sizeAttr}
-                                    style={`transform: translateY(${seededOffset(slug ?? title, 60)}px)`}
                                 >
                                     {hero && (
                                         <div class="img-tint">

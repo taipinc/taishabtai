@@ -461,15 +461,13 @@ html:has(.grid-main) {
     grid-auto-rows: 10px;
     grid-auto-flow: dense;
     align-items: start;
-    gap: 6rem var(--space-lg);
+    gap: var(--space-lg);
 }
 
 /* Card: column flex, grows downward from top */
 .home-masonry .project-grid-item {
     display: flex;
     flex-direction: column;
-    /*background: #f0efed;*/
-    /*padding: var(--space-sm);*/
     gap: var(--space-sm);
 }
 
@@ -494,52 +492,46 @@ html:has(.grid-main) {
 .home-masonry .project-grid-label {
     flex-shrink: 0;
     padding: 0 0;
+    margin-bottom: var(--space-xxs);
 }
 
-/* Summary hidden by default */
+/* Summary visible for all items */
 .home-masonry .project-grid-summary {
-    display: none;
+    display: block;
 }
 
-/* Column spans */
-.home-masonry .project-grid-item[data-size="2"] {
-    grid-column: span 2;
-}
-.home-masonry .project-grid-item[data-size="3"] {
-    grid-column: span 3;
-}
-
-/* --- Wide layout: project and ongoing (image left, text right) --- */
-
+/* other-work: border expands outside card */
+.home-masonry .project-grid-item[data-type="other-work"],
+/* project + ongoing: filled background expands outside card */
 .home-masonry .project-grid-item[data-type="project"],
 .home-masonry .project-grid-item[data-type="ongoing"] {
-    flex-direction: row;
+    position: relative;
 }
 
-.home-masonry .project-grid-item[data-type="project"] .img-tint,
-.home-masonry .project-grid-item[data-type="ongoing"] .img-tint {
-    flex: 0 0 70%;
+.home-masonry .project-grid-item[data-type="other-work"]::before {
+    content: "";
+    position: absolute;
+    inset: -12px;
+    border: 2px solid var(--color-highlight);
+    border-radius: 3px;
+    z-index: -1;
 }
 
-.home-masonry .project-grid-item[data-type="project"] .img-tint img,
-.home-masonry .project-grid-item[data-type="ongoing"] .img-tint img {
-    width: 100%;
-    height: auto;
+.home-masonry .project-grid-item[data-type="project"]::before,
+.home-masonry .project-grid-item[data-type="ongoing"]::before {
+    content: "";
+    position: absolute;
+    inset: -12px;
+    background: var(--color-highlight);
+    border-radius: 3px;
+    z-index: -1;
 }
 
-.home-masonry .project-grid-item[data-type="project"] .project-grid-text,
-.home-masonry .project-grid-item[data-type="ongoing"] .project-grid-text {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    gap: var(--space-sm);
-    /*padding: var(--space-sm);*/
-}
-
+.home-masonry .project-grid-item[data-type="project"] .project-grid-label,
+.home-masonry .project-grid-item[data-type="ongoing"] .project-grid-label,
 .home-masonry .project-grid-item[data-type="project"] .project-grid-summary,
 .home-masonry .project-grid-item[data-type="ongoing"] .project-grid-summary {
-    display: block;
+    color: #fff;
 }
 
 /* --- Text card: tall, no image, no border --- */
