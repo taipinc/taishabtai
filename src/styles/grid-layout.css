@@ -469,6 +469,13 @@ html:has(.grid-main) {
     display: flex;
     flex-direction: column;
     gap: var(--space-sm);
+    position: relative;
+    z-index: 0;
+}
+
+.home-masonry .project-grid-item:hover,
+.home-masonry .project-grid-item.peer-hovered {
+    z-index: 2;
 }
 
 /* Image area: natural size, no forced ratio */
@@ -495,8 +502,20 @@ html:has(.grid-main) {
     margin-bottom: var(--space-xxs);
 }
 
-/* Summary visible for all items */
+/* Summary: hidden, overlays item below on hover — no layout shift */
 .home-masonry .project-grid-summary {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--color-bg);
+    padding: var(--space-xs) 0;
+    z-index: 2;
+}
+
+.home-masonry .project-grid-item:hover .project-grid-summary,
+.home-masonry .project-grid-item.peer-hovered .project-grid-summary {
     display: block;
 }
 
@@ -528,9 +547,7 @@ html:has(.grid-main) {
 }
 
 .home-masonry .project-grid-item[data-type="project"] .project-grid-label,
-.home-masonry .project-grid-item[data-type="ongoing"] .project-grid-label,
-.home-masonry .project-grid-item[data-type="project"] .project-grid-summary,
-.home-masonry .project-grid-item[data-type="ongoing"] .project-grid-summary {
+.home-masonry .project-grid-item[data-type="ongoing"] .project-grid-label {
     color: #fff;
 }
 
@@ -595,4 +612,29 @@ html:has(.grid-main) {
     height: 1.4em;
     object-fit: cover;
     display: block;
+}
+
+/* ---- Connector SVG overlay ---- */
+
+#connector-svg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 10;
+    overflow: visible;
+}
+
+#connector-path {
+    stroke: var(--color-highlight);
+    stroke-width: 3px;
+    fill: none;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+}
+
+#connector-path.visible {
+    opacity: 1;
 }

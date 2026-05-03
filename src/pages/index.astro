@@ -130,6 +130,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
                                     href={slug ? `${base}/${slug}` : undefined}
                                     class="project-grid-item"
                                     data-type={type}
+                                    data-slug={slug}
                                 >
                                     {hero && (
                                         <div class="img-tint">
@@ -142,16 +143,11 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
                                             />
                                         </div>
                                     )}
-                                    <div class="project-grid-text">
-                                        <div class="project-grid-label">
-                                            {title}
+                                    {summary && (
+                                        <div class="project-grid-summary">
+                                            {summary}
                                         </div>
-                                        {summary && (
-                                            <div class="project-grid-summary">
-                                                {summary}
-                                            </div>
-                                        )}
-                                    </div>
+                                    )}
                                 </a>
                             );
                         }),
