@@ -212,18 +212,17 @@ html:has(.grid-main) {
 
 .project-grid-label {
     font-family: var(--font-heading);
-    font-size: 0.7rem;
-    font-weight: 600;
+    font-size: 1.2rem;
+    font-weight: 500;
     line-height: 1.3;
-    /*margin-top: 0.1rem;*/
-    color: var(--color-highlight);
+    color: var(--color-text);
 }
 
 .project-grid-summary {
     font-family: var(--font-body);
     font-size: 0.7rem;
     line-height: 1.4;
-    color: var(--color-highlight);
+    color: var(--color-text);
     /*margin-top: 0.4rem;*/
 }
 
@@ -275,12 +274,26 @@ html:has(.grid-main) {
 }
 
 .content-nav {
-    width: 30%;
+    width: 25%;
     flex-shrink: 0;
     display: flex;
     flex-direction: column;
     height: 100vh;
     overflow: hidden;
+    transition: width 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.grid-content-layout.is-home .content-nav {
+    width: 0;
+    pointer-events: none;
+}
+
+.grid-content-layout.is-home .content-panel {
+    border-left: none;
+}
+
+.grid-content-layout.no-nav-transition .content-nav {
+    transition: none;
 }
 
 .content-nav .col-scroll {
@@ -452,33 +465,23 @@ html:has(.grid-main) {
     flex: 1;
     min-height: 0;
     overflow-y: auto;
-    padding: var(--space-md);
+    padding: 6rem;
 }
 
 .home-masonry {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    grid-auto-rows: 10px;
-    grid-auto-flow: dense;
-    align-items: start;
-    gap: var(--space-lg);
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4rem;
 }
 
-/* Card: column flex, grows downward from top */
 .home-masonry .project-grid-item {
     display: flex;
     flex-direction: column;
-    gap: var(--space-sm);
+    justify-content: center;
+    gap: var(--space-xs);
     position: relative;
-    z-index: 0;
 }
 
-.home-masonry .project-grid-item:hover,
-.home-masonry .project-grid-item.peer-hovered {
-    z-index: 2;
-}
-
-/* Image area: natural size, no forced ratio */
 .home-masonry .project-grid-item .img-tint {
     overflow: hidden;
 }
@@ -490,83 +493,30 @@ html:has(.grid-main) {
     filter: none;
 }
 
-/* Placeholder matches image area height */
 .home-masonry .project-grid-item .grid-placeholder {
     aspect-ratio: 4 / 3;
 }
 
-/* Label: natural height, bottom of card */
-.home-masonry .project-grid-label {
-    flex-shrink: 0;
-    padding: 0 0;
-    margin-bottom: var(--space-xxs);
-}
-
-/* Summary: hidden, overlays item below on hover — no layout shift */
+/* Summary: in-flow (reserves space), fades in on hover */
 .home-masonry .project-grid-summary {
-    display: none;
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    background: var(--color-bg);
-    padding: var(--space-xs) 0;
-    z-index: 2;
+    opacity: 0;
+    transition: opacity 0.15s ease;
 }
 
 .home-masonry .project-grid-item:hover .project-grid-summary,
 .home-masonry .project-grid-item.peer-hovered .project-grid-summary {
-    display: block;
+    opacity: 1;
 }
 
-/* other-work: border expands outside card */
-.home-masonry .project-grid-item[data-type="other-work"],
-/* project + ongoing: filled background expands outside card */
-.home-masonry .project-grid-item[data-type="project"],
-.home-masonry .project-grid-item[data-type="ongoing"] {
-    position: relative;
-}
-
-.home-masonry .project-grid-item[data-type="other-work"]::before {
-    content: "";
-    position: absolute;
-    inset: -12px;
-    border: 2px solid var(--color-highlight);
-    border-radius: 3px;
-    z-index: -1;
-}
-
-.home-masonry .project-grid-item[data-type="project"]::before,
-.home-masonry .project-grid-item[data-type="ongoing"]::before {
-    content: "";
-    position: absolute;
-    inset: -12px;
-    background: var(--color-highlight);
-    border-radius: 3px;
-    z-index: -1;
-}
-
-.home-masonry .project-grid-item[data-type="project"] .project-grid-label,
-.home-masonry .project-grid-item[data-type="ongoing"] .project-grid-label {
-    color: #fff;
-}
-
-/* --- Text card: tall, no image, no border --- */
-
+/* Text card: always visible */
 .home-masonry .project-grid-item--text {
     display: flex;
     flex-direction: column;
     text-decoration: none;
 }
 
-.home-masonry .project-grid-item--text .project-grid-label {
-    font-family: var(--font-heading);
-    /*font-size: 1.2rem;*/
-}
-
 .home-masonry .project-grid-item--text .project-grid-summary {
-    display: block;
-    /*margin-top: 0.4rem;*/
+    opacity: 1;
 }
 
 /* ---- Short bio ---- */
@@ -606,11 +556,26 @@ html:has(.grid-main) {
     font-weight: 400;
 }
 
-.nav-thumb {
-    flex-shrink: 0;
-    width: 1.4em;
-    height: 1.4em;
-    object-fit: cover;
+/* ---- Floating nav thumbnail (content pages) ---- */
+
+#nav-hover-thumb {
+    position: fixed;
+    top: 50%;
+    transform: translateY(-50%);
+    width: min(38%, 480px);
+    pointer-events: none;
+    z-index: 9;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+#nav-hover-thumb.visible {
+    opacity: 1;
+}
+
+#nav-hover-thumb img {
+    width: 100%;
+    height: auto;
     display: block;
 }
 
