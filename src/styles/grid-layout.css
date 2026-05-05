@@ -280,20 +280,6 @@ html:has(.grid-main) {
     flex-direction: column;
     height: 100vh;
     overflow: hidden;
-    transition: width 0.45s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.grid-content-layout.is-home .content-nav {
-    width: 0;
-    pointer-events: none;
-}
-
-.grid-content-layout.is-home .content-panel {
-    border-left: none;
-}
-
-.grid-content-layout.no-nav-transition .content-nav {
-    transition: none;
 }
 
 .content-nav .col-scroll {
@@ -402,29 +388,45 @@ html:has(.grid-main) {
 
 .home-content {
     display: flex;
-    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     height: 100%;
+    padding: 4rem;
+    position: relative;
 }
 
-/* Top bar spanning all home columns — same height as aside .grid-header */
-.home-content > .col-header {
-    flex-shrink: 0;
-    height: var(--header-h);
-    border-bottom: 1px solid var(--color-text);
+#home-display-img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    opacity: 0;
+    transition: opacity 0.4s ease;
 }
 
-.home-columns {
-    display: flex;
-    flex: 1;
-    min-height: 0;
+#home-display-label {
+    position: absolute;
+    bottom: 2rem;
+    right: 2rem;
+    text-align: right;
+    max-width: 40%;
+    opacity: 0;
+    transition: opacity 0.4s ease;
 }
 
-.home-columns .project-grid-col + .project-grid-col {
-    border-left: 1px solid var(--color-text);
+.home-display-title {
+    font-family: var(--font-heading);
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--color-text);
+    line-height: 1.2;
 }
 
-.home-columns .col-scroll {
-    padding: 0 var(--space-panel) var(--space-lg);
+.home-display-summary {
+    font-family: var(--font-body);
+    font-size: 0.7rem;
+    color: var(--color-muted);
+    margin-top: 0.2rem;
+    line-height: 1.4;
 }
 
 /* View transition: content panel slides in from right */
@@ -459,65 +461,6 @@ html:has(.grid-main) {
     animation: slide-in-right 0.2s ease-out forwards;
 }
 
-/* ---- Homepage grid ---- */
-
-.home-masonry-scroll {
-    flex: 1;
-    min-height: 0;
-    overflow-y: auto;
-    padding: 6rem;
-}
-
-.home-masonry {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 4rem;
-}
-
-.home-masonry .project-grid-item {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: var(--space-xs);
-    position: relative;
-}
-
-.home-masonry .project-grid-item .img-tint {
-    overflow: hidden;
-}
-
-.home-masonry .project-grid-item .img-tint img {
-    width: 100%;
-    height: auto;
-    display: block;
-    filter: none;
-}
-
-.home-masonry .project-grid-item .grid-placeholder {
-    aspect-ratio: 4 / 3;
-}
-
-/* Summary: in-flow (reserves space), fades in on hover */
-.home-masonry .project-grid-summary {
-    opacity: 0;
-    transition: opacity 0.15s ease;
-}
-
-.home-masonry .project-grid-item:hover .project-grid-summary,
-.home-masonry .project-grid-item.peer-hovered .project-grid-summary {
-    opacity: 1;
-}
-
-/* Text card: always visible */
-.home-masonry .project-grid-item--text {
-    display: flex;
-    flex-direction: column;
-    text-decoration: none;
-}
-
-.home-masonry .project-grid-item--text .project-grid-summary {
-    opacity: 1;
-}
 
 /* ---- Short bio ---- */
 
@@ -561,7 +504,7 @@ html:has(.grid-main) {
 #nav-hover-thumb {
     position: fixed;
     top: 50%;
-    transform: translateY(-50%);
+    transform: translate(-50%, -50%);
     width: min(38%, 480px);
     pointer-events: none;
     z-index: 9;

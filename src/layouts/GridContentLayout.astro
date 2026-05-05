@@ -69,6 +69,7 @@ for (const post of allPosts) {
                                             class:list={["project-grid-item", { active: currentPath === `${base}/${item.data.slug}` }]}
                                             data-slug={item.data.slug}
                                             data-thumb={thumbUrls.get(item.data.slug!) ?? undefined}
+                                            data-summary={item.data.summary ?? undefined}
                                         >
                                             <div class="project-grid-label">{item.data.title}</div>
                                         </a>
@@ -262,22 +263,98 @@ for (const post of allPosts) {
         </script>
 
         <script>
-            function setHomeLayout(isHome: boolean, instant: boolean) {
-                const layout = document.querySelector<HTMLElement>(".grid-content-layout");
-                if (!layout) return;
-                if (instant) layout.classList.add("no-nav-transition");
-                layout.classList.toggle("is-home", isHome);
-                if (instant) requestAnimationFrame(() => layout.classList.remove("no-nav-transition"));
+            let homeCycleStop: (() => void) | null = null;
+
+            function initHomeImageCycle() {
+                homeCycleStop?.();
+                homeCycleStop = null;
+
+                const displayImg = document.getElementById("home-display-img") as HTMLImageElement | null;
+                if (!displayImg) return;
+
+                const labelEl = document.getElementById("home-display-label") as HTMLElement | null;
+                const titleEl = labelEl?.querySelector(".home-display-title") as HTMLElement | null;
+                const summaryEl = labelEl?.querySelector(".home-display-summary") as HTMLElement | null;
+
+                const navItems = Array.from(
+                    document.querySelectorAll<HTMLElement>(".content-nav .project-grid-item[data-thumb]")
+                );
+                if (navItems.length === 0) return;
+
+                let idx = 0;
+                let paused = false;
+                let timer: ReturnType<typeof setTimeout> | null = null;
+                let fadeSeq = 0;
+
+                function applyLabel(el: HTMLElement) {
+                    if (!titleEl || !summaryEl || !labelEl) return;
+                    titleEl.textContent = el.querySelector(".project-grid-label")?.textContent ?? "";
+                    summaryEl.textContent = el.dataset.summary ?? "";
+                    summaryEl.style.display = el.dataset.summary ? "" : "none";
+                }
+
+                function showFade(el: HTMLElement) {
+                    const seq = ++fadeSeq;
+                    displayImg.style.opacity = "0";
+                    if (labelEl) labelEl.style.opacity = "0";
+                    setTimeout(() => {
+                        if (seq !== fadeSeq) return;
+                        displayImg.src = el.dataset.thumb!;
+                        displayImg.alt = el.querySelector(".project-grid-label")?.textContent ?? "";
+                        applyLabel(el);
+                        requestAnimationFrame(() => {
+                            displayImg.style.opacity = "1";
+                            if (labelEl) labelEl.style.opacity = "1";
+                        });
+                    }, 400);
+                }
+
+                function showInstant(el: HTMLElement) {
+                    fadeSeq++;
+                    displayImg.src = el.dataset.thumb!;
+                    displayImg.alt = el.querySelector(".project-grid-label")?.textContent ?? "";
+                    displayImg.style.opacity = "1";
+                    applyLabel(el);
+                    if (labelEl) labelEl.style.opacity = "1";
+                }
+
+                function scheduleNext() {
+                    if (timer) clearTimeout(timer);
+                    if (paused) return;
+                    timer = setTimeout(() => {
+                        idx = (idx + 1) % navItems.length;
+                        showFade(navItems[idx]);
+                        scheduleNext();
+                    }, 2500);
+                }
+
+                // Show first image
+                showInstant(navItems[0]);
+                scheduleNext();
+
+                const ctrl = new AbortController();
+                const { signal } = ctrl;
+
+                navItems.forEach((el) => {
+                    el.addEventListener("mouseenter", () => {
+                        paused = true;
+                        if (timer) { clearTimeout(timer); timer = null; }
+                        showInstant(el);
+                    }, { signal });
+                    el.addEventListener("mouseleave", () => {
+                        paused = false;
+                        scheduleNext();
+                    }, { signal });
+                });
+
+                homeCycleStop = () => {
+                    ctrl.abort();
+                    if (timer) clearTimeout(timer);
+                };
             }
 
-            // Initial state: no animation
-            setHomeLayout(!!document.querySelector(".home-content"), true);
-
-            document.addEventListener("astro:after-swap", () => {
-                const newIsHome = !!document.querySelector(".home-content");
-                // Going to home: instant hide. Coming from home: animated slide-in.
-                setHomeLayout(newIsHome, newIsHome);
-            });
+            initHomeImageCycle();
+            document.addEventListener("astro:after-swap", initHomeImageCycle);
         </script>
 
         <script>
@@ -353,7 +430,7 @@ for (const post of allPosts) {
                     if (!panel) return;
                     const pRect = panel.getBoundingClientRect();
                     thumbImg.src = src;
-                    thumbEl.style.left = (pRect.left + 8) + "px";
+                    thumbEl.style.left = (pRect.left + pRect.width / 2) + "px";
                     thumbEl.classList.add("visible");
                     startLine(navEl, thumbEl);
                 }
@@ -363,25 +440,13 @@ for (const post of allPosts) {
                 }
 
                 document.querySelectorAll<HTMLElement>(".content-nav .project-grid-item[data-slug]").forEach((el) => {
-                    const slug = el.dataset.slug!;
                     el.addEventListener("mouseenter", () => {
-                        const onHome = !!document.querySelector(".home-masonry");
-                        if (onHome) {
-                            const gridScroll = document.querySelector(".home-masonry-scroll");
-                            const gridEl = document.querySelector<HTMLElement>(`.home-masonry .project-grid-item[data-slug="${slug}"]`);
-                            if (!gridEl) return;
-                            if (gridScroll) smartScroll(gridScroll, gridEl);
-                            gridEl.classList.add("peer-hovered");
-                        } else {
-                            showFloatingThumb(el);
-                        }
+                        const onHome = !!document.getElementById("home-display-img");
+                        if (!onHome) showFloatingThumb(el);
                     }, { signal });
                     el.addEventListener("mouseleave", () => {
-                        const onHome = !!document.querySelector(".home-masonry");
-                        if (onHome) {
-                            const gridEl = document.querySelector<HTMLElement>(`.home-masonry .project-grid-item[data-slug="${slug}"]`);
-                            gridEl?.classList.remove("peer-hovered");
-                        } else {
+                        const onHome = !!document.getElementById("home-display-img");
+                        if (!onHome) {
                             hideFloatingThumb();
                             stopLine();
                         }
