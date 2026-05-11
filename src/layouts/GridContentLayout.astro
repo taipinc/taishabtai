@@ -4,7 +4,6 @@ import { Image, getImage } from "astro:assets";
 import type { ImageMetadata } from "astro";
 import { ClientRouter } from "astro:transitions";
 import { Font } from "astro:assets";
-import ShortBio from "../components/ShortBio.astro";
 import "../styles/global.css";
 import "../styles/grid-layout.css";
 
@@ -15,14 +14,6 @@ interface Props {
 }
 
 const { title = "Shabtai Pinchevsky", activeSlug, background } = Astro.props;
-
-const NAV_SECTIONS = [
-    { type: "ongoing", label: "Ongoing" },
-    { type: "project", label: "Projects" },
-    { type: "interactive", label: "Interactive" },
-    { type: "other-work", label: "Other Works" },
-    { type: "teaching-tool", label: "Teaching Tools" },
-] as const;
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 const allPosts = (await getCollection("posts")).sort((a, b) => b.data.year - a.data.year);
@@ -48,36 +39,33 @@ for (const post of allPosts) {
         <Font cssVariable="--font-heading" preload />
         <ClientRouter />
     </head>
-    <body data-base={base} style={background ? `--color-bg: ${background}; --color-sidebar-bg: ${background};` : ''}>
+    <body data-base={base} data-page={activeSlug ? "content" : "home"} style={background ? `--color-bg: ${background}; --color-sidebar-bg: ${background};` : ''}>
         <div class="grid-content-layout">
             <aside class="content-nav" transition:persist>
                 <header class="grid-header">
                     <a href={`${base}/`} class="artist-name">Shabtai Pinchevsky</a>
                 </header>
                 <nav class="col-scroll">
-                    <ShortBio />
-                    {NAV_SECTIONS.map(({ type, label }) => {
-                        const items = allPosts.filter((p) => p.data.type === type && p.data.slug);
-                        if (items.length === 0) return null;
-                        return (
-                            <>
-                                <h2 class="col-heading">{label}</h2>
-                                {items.map((item) => {
-                                    return (
-                                        <a
-                                            href={`${base}/${item.data.slug}`}
-                                            class:list={["project-grid-item", { active: currentPath === `${base}/${item.data.slug}` }]}
-                                            data-slug={item.data.slug}
-                                            data-thumb={thumbUrls.get(item.data.slug!) ?? undefined}
-                                            data-summary={item.data.summary ?? undefined}
-                                        >
-                                            <div class="project-grid-label">{item.data.title}</div>
-                                        </a>
-                                    );
-                                })}
-                            </>
-                        );
-                    })}
+                    <div class="nav-thumb-grid">
+                        {allPosts.filter(p => p.data.slug).map((item) => {
+                            const thumb = thumbUrls.get(item.data.slug!);
+                            return (
+                                <a
+                                    href={`${base}/${item.data.slug}`}
+                                    class:list={["project-grid-item", { active: currentPath === `${base}/${item.data.slug}` }]}
+                                    data-slug={item.data.slug}
+                                    data-thumb={thumb ?? undefined}
+                                    data-summary={item.data.summary ?? undefined}
+                                >
+                                    {thumb
+                                        ? <img src={thumb} class="nav-thumb" alt={item.data.title} />
+                                        : <div class="grid-placeholder"></div>
+                                    }
+                                    <div class="project-grid-label">{item.data.title}</div>
+                                </a>
+                            );
+                        })}
+                    </div>
                 </nav>
             </aside>
             <main class="content-panel" transition:name="content-panel" data-bg={background ?? ''}>
@@ -92,13 +80,6 @@ for (const post of allPosts) {
                 <div class="lightbox-caption"></div>
             </div>
         </div>
-        <svg id="connector-svg" aria-hidden="true">
-            <path id="connector-path" d="" />
-        </svg>
-        <div id="nav-hover-thumb" aria-hidden="true">
-            <img src="" alt="" />
-        </div>
-
         <script>
             function initGridLightbox() {
                 const lightbox = document.getElementById("lightbox");
@@ -263,15 +244,17 @@ for (const post of allPosts) {
         </script>
 
         <script>
-            let homeCycleStop: (() => void) | null = null;
+            let homeHoverStop: (() => void) | null = null;
 
-            function initHomeImageCycle() {
-                homeCycleStop?.();
-                homeCycleStop = null;
+            function initHomeHover() {
+                homeHoverStop?.();
+                homeHoverStop = null;
 
                 const displayImg = document.getElementById("home-display-img") as HTMLImageElement | null;
                 if (!displayImg) return;
 
+                const defaultSrc = displayImg.dataset.defaultSrc || displayImg.src;
+                const bioOverlay = document.getElementById("home-bio-overlay") as HTMLElement | null;
                 const labelEl = document.getElementById("home-display-label") as HTMLElement | null;
                 const titleEl = labelEl?.querySelector(".home-display-title") as HTMLElement | null;
                 const summaryEl = labelEl?.querySelector(".home-display-summary") as HTMLElement | null;
@@ -279,183 +262,38 @@ for (const post of allPosts) {
                 const navItems = Array.from(
                     document.querySelectorAll<HTMLElement>(".content-nav .project-grid-item[data-thumb]")
                 );
-                if (navItems.length === 0) return;
 
-                let idx = 0;
-                let paused = false;
-                let timer: ReturnType<typeof setTimeout> | null = null;
-                let fadeSeq = 0;
-
-                function applyLabel(el: HTMLElement) {
-                    if (!titleEl || !summaryEl || !labelEl) return;
-                    titleEl.textContent = el.querySelector(".project-grid-label")?.textContent ?? "";
-                    summaryEl.textContent = el.dataset.summary ?? "";
-                    summaryEl.style.display = el.dataset.summary ? "" : "none";
-                }
-
-                function showFade(el: HTMLElement) {
-                    const seq = ++fadeSeq;
-                    displayImg.style.opacity = "0";
+                function showDefault() {
+                    displayImg.src = defaultSrc;
+                    if (bioOverlay) bioOverlay.style.opacity = "1";
                     if (labelEl) labelEl.style.opacity = "0";
-                    setTimeout(() => {
-                        if (seq !== fadeSeq) return;
-                        displayImg.src = el.dataset.thumb!;
-                        displayImg.alt = el.querySelector(".project-grid-label")?.textContent ?? "";
-                        applyLabel(el);
-                        requestAnimationFrame(() => {
-                            displayImg.style.opacity = "1";
-                            if (labelEl) labelEl.style.opacity = "1";
-                        });
-                    }, 400);
                 }
 
-                function showInstant(el: HTMLElement) {
-                    fadeSeq++;
+                function showThumb(el: HTMLElement) {
                     displayImg.src = el.dataset.thumb!;
-                    displayImg.alt = el.querySelector(".project-grid-label")?.textContent ?? "";
-                    displayImg.style.opacity = "1";
-                    applyLabel(el);
+                    if (bioOverlay) bioOverlay.style.opacity = "0";
+                    if (titleEl) titleEl.textContent = el.querySelector(".project-grid-label")?.textContent ?? "";
+                    if (summaryEl) {
+                        summaryEl.textContent = el.dataset.summary ?? "";
+                        summaryEl.style.display = el.dataset.summary ? "" : "none";
+                    }
                     if (labelEl) labelEl.style.opacity = "1";
                 }
-
-                function scheduleNext() {
-                    if (timer) clearTimeout(timer);
-                    if (paused) return;
-                    timer = setTimeout(() => {
-                        idx = (idx + 1) % navItems.length;
-                        showFade(navItems[idx]);
-                        scheduleNext();
-                    }, 2500);
-                }
-
-                // Show first image
-                showInstant(navItems[0]);
-                scheduleNext();
 
                 const ctrl = new AbortController();
                 const { signal } = ctrl;
 
                 navItems.forEach((el) => {
-                    el.addEventListener("mouseenter", () => {
-                        paused = true;
-                        if (timer) { clearTimeout(timer); timer = null; }
-                        showInstant(el);
-                    }, { signal });
-                    el.addEventListener("mouseleave", () => {
-                        paused = false;
-                        scheduleNext();
-                    }, { signal });
+                    el.addEventListener("mouseenter", () => showThumb(el), { signal });
+                    el.addEventListener("mouseleave", showDefault, { signal });
                 });
 
-                homeCycleStop = () => {
-                    ctrl.abort();
-                    if (timer) clearTimeout(timer);
-                };
+                homeHoverStop = () => ctrl.abort();
             }
 
-            initHomeImageCycle();
-            document.addEventListener("astro:after-swap", initHomeImageCycle);
+            initHomeHover();
+            document.addEventListener("astro:after-swap", initHomeHover);
         </script>
 
-        <script>
-            let connectorAbort: AbortController | null = null;
-            let animFrame: number | null = null;
-
-            function smartScroll(scrollEl: Element, targetEl: Element) {
-                const sRect = scrollEl.getBoundingClientRect();
-                const tRect = targetEl.getBoundingClientRect();
-                const relTop = tRect.top - sRect.top;
-                const relBottom = tRect.bottom - sRect.top;
-                const h = sRect.height;
-                if (relTop >= h * 0.25 && relBottom <= h * 0.75) return;
-                const targetCenter = relTop + tRect.height / 2;
-                scrollEl.scrollBy({ top: targetCenter - h / 2, behavior: "smooth" });
-            }
-
-            function initConnectors() {
-                connectorAbort?.abort();
-                if (animFrame !== null) { cancelAnimationFrame(animFrame); animFrame = null; }
-                connectorAbort = new AbortController();
-                const { signal } = connectorAbort;
-
-                const pathEl = document.getElementById("connector-path") as SVGPathElement | null;
-                if (!pathEl) return;
-
-                function drawLinePath(navEl: Element, gridEl: Element) {
-                    const labelEl = navEl.querySelector(".project-grid-label");
-                    const gRect = gridEl.getBoundingClientRect();
-                    let xStart: number, x0: number, y0: number;
-                    if (labelEl) {
-                        const lRect = labelEl.getBoundingClientRect();
-                        xStart = lRect.left;
-                        x0 = lRect.right;
-                        y0 = lRect.bottom + 2;
-                    } else {
-                        const nRect = navEl.getBoundingClientRect();
-                        xStart = nRect.left;
-                        x0 = nRect.right;
-                        y0 = (nRect.top + nRect.bottom) / 2;
-                    }
-                    const x1 = gRect.left;
-                    const y1 = (gRect.top + gRect.bottom) / 2;
-                    const cp = Math.abs(x1 - x0) * 0.45;
-                    pathEl!.setAttribute("d",
-                        `M ${xStart} ${y0} L ${x0} ${y0} C ${x0 + cp} ${y0} ${x1 - cp} ${y1} ${x1} ${y1}`
-                    );
-                }
-
-                function startLine(navEl: Element, gridEl: Element) {
-                    if (animFrame !== null) cancelAnimationFrame(animFrame);
-                    function frame() {
-                        drawLinePath(navEl, gridEl);
-                        pathEl!.classList.add("visible");
-                        animFrame = requestAnimationFrame(frame);
-                    }
-                    animFrame = requestAnimationFrame(frame);
-                }
-
-                function stopLine() {
-                    if (animFrame !== null) { cancelAnimationFrame(animFrame); animFrame = null; }
-                    pathEl!.classList.remove("visible");
-                }
-
-                const thumbEl = document.getElementById("nav-hover-thumb") as HTMLElement | null;
-                const thumbImg = thumbEl?.querySelector("img") as HTMLImageElement | null;
-
-                function showFloatingThumb(navEl: HTMLElement) {
-                    if (!thumbEl || !thumbImg) return;
-                    const src = navEl.dataset.thumb;
-                    if (!src) return;
-                    const panel = document.querySelector<HTMLElement>(".content-panel");
-                    if (!panel) return;
-                    const pRect = panel.getBoundingClientRect();
-                    thumbImg.src = src;
-                    thumbEl.style.left = (pRect.left + pRect.width / 2) + "px";
-                    thumbEl.classList.add("visible");
-                    startLine(navEl, thumbEl);
-                }
-
-                function hideFloatingThumb() {
-                    thumbEl?.classList.remove("visible");
-                }
-
-                document.querySelectorAll<HTMLElement>(".content-nav .project-grid-item[data-slug]").forEach((el) => {
-                    el.addEventListener("mouseenter", () => {
-                        const onHome = !!document.getElementById("home-display-img");
-                        if (!onHome) showFloatingThumb(el);
-                    }, { signal });
-                    el.addEventListener("mouseleave", () => {
-                        const onHome = !!document.getElementById("home-display-img");
-                        if (!onHome) {
-                            hideFloatingThumb();
-                            stopLine();
-                        }
-                    }, { signal });
-                });
-            }
-
-            initConnectors();
-            document.addEventListener("astro:after-swap", initConnectors);
-        </script>
     </body>
 </html>
