@@ -27,6 +27,18 @@ for (const post of allPosts) {
         thumbUrls.set(post.data.slug, img.src);
     }
 }
+
+const navPosts = allPosts.filter(p => p.data.slug && p.data.type !== "text");
+
+const navGroups = [
+    { label: "Works", types: ["ongoing", "project"] },
+    { label: "Interactive", types: ["interactive"] },
+    { label: "Other Works", types: ["other-work"] },
+    { label: "Teaching Tools", types: ["teaching-tool"] },
+].map(g => ({
+    label: g.label,
+    items: navPosts.filter(p => g.types.includes(p.data.type)),
+})).filter(g => g.items.length > 0);
 ---
 
 <!doctype html>
@@ -35,8 +47,7 @@ for (const post of allPosts) {
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>{title}</title>
-        <Font cssVariable="--font-body" preload />
-        <Font cssVariable="--font-heading" preload />
+        <Font cssVariable="--font-serif" preload />
         <ClientRouter />
     </head>
     <body data-base={base} data-page={activeSlug ? "content" : "home"} style={background ? `--color-bg: ${background}; --color-sidebar-bg: ${background};` : ''}>
@@ -46,26 +57,29 @@ for (const post of allPosts) {
                     <a href={`${base}/`} class="artist-name">Shabtai Pinchevsky</a>
                 </header>
                 <nav class="col-scroll">
-                    <div class="nav-thumb-grid">
-                        {allPosts.filter(p => p.data.slug).map((item) => {
-                            const thumb = thumbUrls.get(item.data.slug!);
-                            return (
-                                <a
-                                    href={`${base}/${item.data.slug}`}
-                                    class:list={["project-grid-item", { active: currentPath === `${base}/${item.data.slug}` }]}
-                                    data-slug={item.data.slug}
-                                    data-thumb={thumb ?? undefined}
-                                    data-summary={item.data.summary ?? undefined}
-                                >
-                                    {thumb
-                                        ? <img src={thumb} class="nav-thumb" alt={item.data.title} />
-                                        : <div class="grid-placeholder"></div>
-                                    }
-                                    <div class="project-grid-label">{item.data.title}</div>
-                                </a>
-                            );
-                        })}
-                    </div>
+                    {navGroups.map(group => (
+                        <div class="nav-group">
+                            <div class="nav-group-heading">{group.label}</div>
+                            <div class="nav-thumb-grid">
+                                {group.items.map((item) => {
+                                    const thumb = thumbUrls.get(item.data.slug!);
+                                    return (
+                                        <a
+                                            href={`${base}/${item.data.slug}`}
+                                            class:list={["project-grid-item", { active: currentPath === `${base}/${item.data.slug}` }]}
+                                            data-slug={item.data.slug}
+                                        >
+                                            {thumb
+                                                ? <img src={thumb} class="nav-thumb" alt={item.data.title} />
+                                                : <div class="grid-placeholder"></div>
+                                            }
+                                            <div class="project-grid-label">{item.data.title}</div>
+                                        </a>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    ))}
                 </nav>
             </aside>
             <main class="content-panel" transition:name="content-panel" data-bg={background ?? ''}>
@@ -241,58 +255,6 @@ for (const post of allPosts) {
                     document.querySelector(".content-panel")?.scrollTo(0, 0);
                 }
             });
-        </script>
-
-        <script>
-            let homeHoverStop: (() => void) | null = null;
-
-            function initHomeHover() {
-                homeHoverStop?.();
-                homeHoverStop = null;
-
-                const displayImg = document.getElementById("home-display-img") as HTMLImageElement | null;
-                if (!displayImg) return;
-
-                const defaultSrc = displayImg.dataset.defaultSrc || displayImg.src;
-                const bioOverlay = document.getElementById("home-bio-overlay") as HTMLElement | null;
-                const labelEl = document.getElementById("home-display-label") as HTMLElement | null;
-                const titleEl = labelEl?.querySelector(".home-display-title") as HTMLElement | null;
-                const summaryEl = labelEl?.querySelector(".home-display-summary") as HTMLElement | null;
-
-                const navItems = Array.from(
-                    document.querySelectorAll<HTMLElement>(".content-nav .project-grid-item[data-thumb]")
-                );
-
-                function showDefault() {
-                    displayImg.src = defaultSrc;
-                    if (bioOverlay) bioOverlay.style.opacity = "1";
-                    if (labelEl) labelEl.style.opacity = "0";
-                }
-
-                function showThumb(el: HTMLElement) {
-                    displayImg.src = el.dataset.thumb!;
-                    if (bioOverlay) bioOverlay.style.opacity = "0";
-                    if (titleEl) titleEl.textContent = el.querySelector(".project-grid-label")?.textContent ?? "";
-                    if (summaryEl) {
-                        summaryEl.textContent = el.dataset.summary ?? "";
-                        summaryEl.style.display = el.dataset.summary ? "" : "none";
-                    }
-                    if (labelEl) labelEl.style.opacity = "1";
-                }
-
-                const ctrl = new AbortController();
-                const { signal } = ctrl;
-
-                navItems.forEach((el) => {
-                    el.addEventListener("mouseenter", () => showThumb(el), { signal });
-                    el.addEventListener("mouseleave", showDefault, { signal });
-                });
-
-                homeHoverStop = () => ctrl.abort();
-            }
-
-            initHomeHover();
-            document.addEventListener("astro:after-swap", initHomeHover);
         </script>
 
     </body>

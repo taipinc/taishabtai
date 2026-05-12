@@ -1,21 +1,37 @@
 ---
-import GridContentLayout from "../layouts/GridContentLayout.astro";
-import { getImage } from "astro:assets";
-import mainImgFile from "../assets/images/main.jpg";
+import { getCollection } from "astro:content";
+import SiteLayout from "../layouts/SiteLayout.astro";
 
-const mainImgSrc = (await getImage({ src: mainImgFile, quality: 90 })).src;
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+
+const allPosts = (await getCollection("posts"))
+    .filter(p => p.data.slug && p.data.type !== "text")
+    .sort((a, b) => b.data.year - a.data.year);
+
+const groups = [
+    { label: "Works", types: ["ongoing", "project"] },
+    { label: "Interactive", types: ["interactive"] },
+    { label: "Other Works", types: ["other-work"] },
+    { label: "Teaching Tools", types: ["teaching-tool"] },
+].map(g => ({
+    label: g.label,
+    items: allPosts.filter(p => g.types.includes(p.data.type)),
+})).filter(g => g.items.length > 0);
 ---
 
-<GridContentLayout>
-    <div class="home-content">
-        <img id="home-display-img" src={mainImgSrc} data-default-src={mainImgSrc} alt="" />
-        <div id="home-display-label">
-            <div class="home-display-title"></div>
-            <div class="home-display-summary"></div>
-        </div>
-        <div id="home-bio-overlay">
-            <p>I'm a photographer and digital media artist whose practice examines the politics of image-making in contested geographies, particularly Israel/Palestine. I work across 3D modeling, mapping, drone photography, and archival research to examine photography's entanglements with colonial and territorial politics.</p>
-            <p>I'm an Assistant Professor of Photography at Parsons School of Design, The New School.</p>
-        </div>
+<SiteLayout>
+    <div class="home-works">
+        {groups.map((group, i) => (
+            <>
+                {i > 0 && <hr class="group-hr" />}
+                <ul class="work-list">
+                    {group.items.map(item => (
+                        <li>
+                            <a href={`${base}/${item.data.slug}`}>{item.data.title}</a>
+                        </li>
+                    ))}
+                </ul>
+            </>
+        ))}
     </div>
-</GridContentLayout>
+</SiteLayout>
