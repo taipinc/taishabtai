@@ -1,0 +1,249 @@
+---
+import { getCollection } from "astro:content";
+import { ClientRouter } from "astro:transitions";
+import { Font } from "astro:assets";
+import "../styles/global.css";
+import "../styles/grid-layout.css";
+
+interface Props {
+    title?: string;
+    background?: string;
+    centerIframe?: boolean;
+    activeSlug?: string;
+    isWide?: boolean;
+}
+
+const { title = "Shabtai Pinchevsky", background, centerIframe = false, activeSlug, isWide = false } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+
+const allPosts = (await getCollection("posts"))
+    .filter(p => p.data.slug && p.data.type !== "text")
+    .sort((a, b) => b.data.year - a.data.year);
+
+const navGroups = [
+    { label: "Works", types: ["ongoing", "project"] },
+    { label: "Interactive", types: ["interactive"] },
+    { label: "Other Works", types: ["other-work"] },
+    { label: "Teaching Tools", types: ["teaching-tool"] },
+].map(g => ({
+    label: g.label,
+    items: allPosts.filter(p => g.types.includes(p.data.type)),
+})).filter(g => g.items.length > 0);
+---
+
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>{title}</title>
+        <Font cssVariable="--font-serif" preload />
+        <ClientRouter />
+    </head>
+    <body data-base={base} data-page={activeSlug ? "content" : "home"} style={background ? `--color-bg: ${background};` : ""}>
+        <div class:list={["home-grid", { "grid-wide-content": isWide }]}>
+
+            <div class="home-col" transition:persist="col-left">
+                <div class="home-col-header">
+                    <a href={`${base}/`} class="home-name">Shabtai Pinchevsky</a>
+                </div>
+                <div class="home-col-body">
+                    <div class="left-bio">
+                        <p>I'm a photographer and digital media artist whose practice examines the politics of image-making in contested geographies, particularly Israel/Palestine. I work across 3D modeling, mapping, drone photography, and archival research to examine photography's entanglements with colonial and territorial politics.</p>
+                        <p>I'm an Assistant Professor of Photography at Parsons School of Design, The New School.</p>
+                    </div>
+                    <div class="home-works left-nav">
+                        {navGroups.map((group, i) => (
+                            <>
+                                {i > 0 && <hr class="group-hr" />}
+                                <ul class="work-list">
+                                    {group.items.map(item => (
+                                        <li>
+                                            <a
+                                                href={`${base}/${item.data.slug}`}
+                                                class:list={[{ active: item.data.slug === activeSlug }]}
+                                            >{item.data.title}</a>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </>
+                        ))}
+                    </div>
+                </div>
+            </div>
+
+            <div class="home-col">
+                <div class="home-col-header">
+                    <slot name="center-header" />
+                </div>
+                <div class:list={["home-col-body", "center-col-body", { "col-iframe": centerIframe }]}>
+                    <slot />
+                </div>
+            </div>
+
+            {!isWide && (
+                <div class="home-col">
+                    <div class="home-col-header">
+                        <slot name="right-header" />
+                    </div>
+                    <div class="home-col-body" id="right-col-body"></div>
+                </div>
+            )}
+
+        </div>
+
+        <div class="lightbox" id="lightbox">
+            <button class="lightbox-close" aria-label="Close">&times;</button>
+            <button class="lightbox-prev" aria-label="Previous">
+                <svg width="10" height="18" viewBox="0 0 10 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="8,1 1,9 8,17"/></svg>
+            </button>
+            <button class="lightbox-next" aria-label="Next">
+                <svg width="10" height="18" viewBox="0 0 10 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,1 9,9 2,17"/></svg>
+            </button>
+            <img src="" alt="" />
+            <div class="lightbox-video"><iframe src="" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe></div>
+            <div class="lightbox-caption"></div>
+        </div>
+
+        <script>
+            function initLightbox() {
+                const lightbox = document.getElementById("lightbox");
+                if (!lightbox) return;
+                const lbImg = lightbox.querySelector(":scope > img") as HTMLImageElement;
+                const lbVideo = lightbox.querySelector(".lightbox-video") as HTMLElement;
+                const lbIframe = lbVideo.querySelector("iframe") as HTMLIFrameElement;
+                const lbCaption = lightbox.querySelector(".lightbox-caption") as HTMLElement;
+                const btnClose = lightbox.querySelector(".lightbox-close") as HTMLElement;
+                const btnPrev = lightbox.querySelector(".lightbox-prev") as HTMLElement;
+                const btnNext = lightbox.querySelector(".lightbox-next") as HTMLElement;
+
+                let items: HTMLElement[] = [];
+                let currentIndex = 0;
+
+                function show(index: number) {
+                    if (items.length === 0) return;
+                    currentIndex = ((index % items.length) + items.length) % items.length;
+                    const fig = items[currentIndex];
+                    const img = fig.querySelector("img");
+                    if (!img) return;
+                    lbVideo.style.display = "none";
+                    lbIframe.src = "";
+                    lbImg.style.display = "";
+                    lbImg.src = img.src;
+                    lbImg.alt = img.alt;
+                    let caption = fig.querySelector(".caption")?.textContent || "";
+                    if (!caption) caption = fig.closest(".gallery")?.querySelector(":scope > .caption")?.textContent || "";
+                    lbCaption.textContent = caption;
+                    lightbox.classList.add("active");
+                    btnPrev.style.display = items.length > 1 ? "" : "none";
+                    btnNext.style.display = items.length > 1 ? "" : "none";
+                }
+
+                function close() { lightbox.classList.remove("active"); lbIframe.src = ""; }
+
+                document.addEventListener("click", (e) => {
+                    const fig = (e.target as HTMLElement).closest(".project-content figure");
+                    if (fig) {
+                        items = Array.from(document.querySelectorAll(".project-content figure"));
+                        const idx = items.indexOf(fig as HTMLElement);
+                        if (idx !== -1) show(idx);
+                    }
+                });
+
+                btnClose.addEventListener("click", close);
+                btnPrev.addEventListener("click", (e) => { e.stopPropagation(); show(currentIndex - 1); });
+                btnNext.addEventListener("click", (e) => { e.stopPropagation(); show(currentIndex + 1); });
+                lightbox.addEventListener("click", (e) => { if (e.target === lightbox || e.target === lbImg) close(); });
+                document.addEventListener("keydown", (e) => {
+                    if (!lightbox.classList.contains("active")) return;
+                    if (e.key === "Escape") close();
+                    if (e.key === "ArrowLeft") show(currentIndex - 1);
+                    if (e.key === "ArrowRight") show(currentIndex + 1);
+                });
+            }
+
+            initLightbox();
+            document.addEventListener("astro:after-swap", initLightbox);
+        </script>
+
+        <script>
+            let leftColScrollTop = 0;
+            let centerScrollTop = 0;
+
+            function isHome() {
+                const base = document.body.dataset.base || "";
+                const p = window.location.pathname.replace(/\/$/, "");
+                return p === base || p === "";
+            }
+
+            document.addEventListener("astro:before-swap", () => {
+                leftColScrollTop = document.querySelector(".home-col .home-col-body")?.scrollTop ?? 0;
+                if (isHome()) {
+                    centerScrollTop = document.querySelector(".center-col-body")?.scrollTop ?? 0;
+                }
+            });
+
+            document.addEventListener("astro:after-swap", () => {
+                const leftCol = document.querySelector(".home-col .home-col-body");
+                if (leftCol) leftCol.scrollTop = leftColScrollTop;
+
+                if (isHome() && centerScrollTop > 0) {
+                    const el = document.querySelector(".center-col-body");
+                    if (el) el.scrollTop = centerScrollTop;
+                }
+
+                const base = document.body.dataset.base || "";
+                const path = window.location.pathname.replace(/\/$/, "");
+                document.querySelectorAll(".left-nav .work-list a").forEach((a) => {
+                    const href = (a as HTMLAnchorElement).href.replace(/\/$/, "");
+                    const slug = href.split("/").pop() || "";
+                    a.classList.toggle("active", path.endsWith("/" + slug) && slug !== "");
+                });
+            });
+        </script>
+
+        <script>
+            let splitAbort: AbortController | null = null;
+
+            function initSplitPane() {
+                if (splitAbort) splitAbort.abort();
+                splitAbort = null;
+
+                const centerBody = document.querySelector(".center-col-body") as HTMLElement | null;
+                const rightBody = document.getElementById("right-col-body") as HTMLElement | null;
+                if (!centerBody || !rightBody) return;
+
+                // Teleport all .text-pane elements into the right column
+                const panes = Array.from(centerBody.querySelectorAll(".text-pane"));
+                if (panes.length === 0) return;
+                panes.forEach(el => rightBody.appendChild(el));
+
+                // Proportional scroll sync: both columns reach their end at the same time
+                splitAbort = new AbortController();
+                const { signal } = splitAbort;
+                let syncing = false;
+
+                function syncScroll(source: HTMLElement, target: HTMLElement) {
+                    if (syncing) return;
+                    const sourceMax = source.scrollHeight - source.clientHeight;
+                    if (sourceMax <= 0) return;
+                    syncing = true;
+                    const pct = source.scrollTop / sourceMax;
+                    const targetMax = target.scrollHeight - target.clientHeight;
+                    target.scrollTop = pct * targetMax;
+                    requestAnimationFrame(() => { syncing = false; });
+                }
+
+                // Media pane drives sync; text pane redirects its wheel input to media pane
+                centerBody.addEventListener("scroll", () => syncScroll(centerBody, rightBody), { signal });
+                rightBody.addEventListener("wheel", (e) => {
+                    e.preventDefault();
+                    centerBody.scrollTop += e.deltaY;
+                }, { passive: false, signal });
+            }
+
+            initSplitPane();
+            document.addEventListener("astro:after-swap", initSplitPane);
+        </script>
+    </body>
+</html>

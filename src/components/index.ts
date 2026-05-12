@@ -7,3 +7,5 @@ export { default as Column } from './Column.astro';
 export { default as Figure } from './Figure.astro';
 export { default as Gallery } from './Gallery.astro';
 export { default as Row } from './Row.astro';
+export { default as ShortBio } from './ShortBio.astro';
+export { default as TextPane } from './TextPane.astro';

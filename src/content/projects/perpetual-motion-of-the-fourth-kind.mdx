@@ -1,4 +1,5 @@
 ---
+type: project
 title: "Perpetual Motion of the Fourth Kind"
 year: 2019
 # medium: ""
@@ -6,16 +7,13 @@ hero: "../../assets/images/perpetual-motion-of-the-fourth-kind/main.png"
 slug: "perpetual-motion-of-the-fourth-kind"
 summary: "A walk on Jerusalem's ever-expanding perimeter, and exploration of the significance of the frontier in the city’s identity and relations with its surroundings."
 # background: "#B3ACA0"
+tags: ["video", "photography"]
 ---
 
-import { Figure, VideoEmbed, Columns, Column, Center, Space } from '../../components';
+import { Figure, VideoEmbed, Columns, Column, Center, Space, TextPane } from '../../components';
 
-<VideoEmbed
-    url="https://vimeo.com/884825882"
-    caption="Perpetual Motion of the Fourth Kind" 
-/>
-<Space/>
-<Center width={2}>
+<TextPane>
+
 <p>
 Between 1973 and 2019, the perimeter of Jerusalem grew by 142 km.
 3 km a year
@@ -30,4 +28,11 @@ The perimeter’s growth doesn’t necessarily indicate a growth in the built-up
 </p><p>
 The materialization of the perimeter's growth takes place in two new video works shown in the exhibition. The work titled ‘270 km’ presents a video simulation of an Eruv string which grows by 85 meters during the 10 days of the show.
 </p>
-</Center>
+
+</TextPane>
+
+<VideoEmbed
+    url="https://vimeo.com/884825882"
+    caption="Perpetual Motion of the Fourth Kind" 
+/>
+<Space/>

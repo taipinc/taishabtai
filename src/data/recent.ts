@@ -15,14 +15,16 @@ export interface RecentItem {
   thumb?: string;
   /** Optional caption shown in the lightbox */
   caption?: string;
+  /** Year for grid ordering */
+  year?: number;
 }
 
 export const recentItems: RecentItem[] = [
-  { video: "https://vimeo.com/1175793532", thumb: "1175793532.jpg" },
-  { video: "https://vimeo.com/1175793377" },
-  { video: "https://vimeo.com/1175793573", thumb: "1175793573.jpg" },
-  { video: "https://vimeo.com/1175793350" },
-  { video: "https://vimeo.com/1175793473", thumb: "1175793473.jpg" },
-  { video: "https://vimeo.com/1175793325", thumb: "1175793325.jpg" },
-  { video: "https://vimeo.com/1175793360" },
+  { video: "https://vimeo.com/1175793532", thumb: "1175793532.jpg", year: 2025 },
+  { video: "https://vimeo.com/1175793377", year: 2025 },
+  { video: "https://vimeo.com/1175793573", thumb: "1175793573.jpg", year: 2025 },
+  { video: "https://vimeo.com/1175793350", year: 2025 },
+  { video: "https://vimeo.com/1175793473", thumb: "1175793473.jpg", year: 2025 },
+  { video: "https://vimeo.com/1175793325", thumb: "1175793325.jpg", year: 2025 },
+  { video: "https://vimeo.com/1175793360", year: 2025 },
 ];

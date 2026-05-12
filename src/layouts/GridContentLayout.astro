@@ -1,9 +1,9 @@
 ---
 import { getCollection } from "astro:content";
-import { Image } from "astro:assets";
+import { Image, getImage } from "astro:assets";
+import type { ImageMetadata } from "astro";
 import { ClientRouter } from "astro:transitions";
 import { Font } from "astro:assets";
-import type { ImageMetadata } from "astro";
 import "../styles/global.css";
 import "../styles/grid-layout.css";
 
@@ -15,27 +15,30 @@ interface Props {
 
 const { title = "Shabtai Pinchevsky", activeSlug, background } = Astro.props;
 
-interface GridItem {
-    title: string;
-    slug: string;
-    year: number;
-    hero?: ImageMetadata;
-    summary?: string;
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+const allPosts = (await getCollection("posts")).sort((a, b) => b.data.year - a.data.year);
+const currentPath = Astro.url.pathname.replace(/\/$/, "");
+
+const thumbUrls = new Map<string, string>();
+for (const post of allPosts) {
+    const src = post.data.icon ?? post.data.hero;
+    if (src && post.data.slug) {
+        const img = await getImage({ src, width: 800, quality: 80 });
+        thumbUrls.set(post.data.slug, img.src);
+    }
 }
 
-const toGridItems = (items: any[]): GridItem[] =>
-    items.map((p) => ({
-        title: p.data.title,
-        slug: p.data.slug,
-        year: p.data.year,
-        hero: p.data.hero,
-        summary: p.data.summary,
-    }));
+const navPosts = allPosts.filter(p => p.data.slug && p.data.type !== "text");
 
-const base = import.meta.env.BASE_URL.replace(/\/$/, "");
-const ongoing = (await getCollection("ongoing")).sort((a, b) => b.data.year - a.data.year);
-const projects = (await getCollection("projects")).sort((a, b) => b.data.year - a.data.year);
-const currentPath = Astro.url.pathname.replace(/\/$/, "");
+const navGroups = [
+    { label: "Works", types: ["ongoing", "project"] },
+    { label: "Interactive", types: ["interactive"] },
+    { label: "Other Works", types: ["other-work"] },
+    { label: "Teaching Tools", types: ["teaching-tool"] },
+].map(g => ({
+    label: g.label,
+    items: navPosts.filter(p => g.types.includes(p.data.type)),
+})).filter(g => g.items.length > 0);
 ---
 
 <!doctype html>
@@ -44,49 +47,40 @@ const currentPath = Astro.url.pathname.replace(/\/$/, "");
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>{title}</title>
-        <Font cssVariable="--font-body" preload />
-        <Font cssVariable="--font-heading" preload />
+        <Font cssVariable="--font-serif" preload />
         <ClientRouter />
     </head>
-    <body data-base={base} style={background ? `--color-bg: ${background}; --color-sidebar-bg: ${background};` : ''}>
+    <body data-base={base} data-page={activeSlug ? "content" : "home"} style={background ? `--color-bg: ${background}; --color-sidebar-bg: ${background};` : ''}>
         <div class="grid-content-layout">
             <aside class="content-nav" transition:persist>
                 <header class="grid-header">
                     <a href={`${base}/`} class="artist-name">Shabtai Pinchevsky</a>
                 </header>
-                <div class="col-scroll">
-                    <h2 class="col-heading">Ongoing</h2>
-                    {toGridItems(ongoing).map((item) => (
-                        <a
-                            href={`${base}/${item.slug}`}
-                            class:list={["project-grid-item", { active: currentPath === `${base}/${item.slug}` }]}
-                        >
-                            {item.hero ? (
-                                <div class="img-tint"><Image src={item.hero} alt={item.title} loading="lazy" width={800} quality={80} /></div>
-                            ) : (
-                                <div class="grid-placeholder" />
-                            )}
-                            <div class="project-grid-label">{item.title}</div>
-                            {item.summary && <div class="project-grid-summary">{item.summary}</div>}
-                        </a>
+                <nav class="col-scroll">
+                    {navGroups.map(group => (
+                        <div class="nav-group">
+                            <div class="nav-group-heading">{group.label}</div>
+                            <div class="nav-thumb-grid">
+                                {group.items.map((item) => {
+                                    const thumb = thumbUrls.get(item.data.slug!);
+                                    return (
+                                        <a
+                                            href={`${base}/${item.data.slug}`}
+                                            class:list={["project-grid-item", { active: currentPath === `${base}/${item.data.slug}` }]}
+                                            data-slug={item.data.slug}
+                                        >
+                                            {thumb
+                                                ? <img src={thumb} class="nav-thumb" alt={item.data.title} />
+                                                : <div class="grid-placeholder"></div>
+                                            }
+                                            <div class="project-grid-label">{item.data.title}</div>
+                                        </a>
+                                    );
+                                })}
+                            </div>
+                        </div>
                     ))}
-
-                    <h2 class="col-heading">Selected Works</h2>
-                    {toGridItems(projects).map((item) => (
-                        <a
-                            href={`${base}/${item.slug}`}
-                            class:list={["project-grid-item", { active: currentPath === `${base}/${item.slug}` }]}
-                        >
-                            {item.hero ? (
-                                <div class="img-tint"><Image src={item.hero} alt={item.title} loading="lazy" width={800} quality={80} /></div>
-                            ) : (
-                                <div class="grid-placeholder" />
-                            )}
-                            <div class="project-grid-label">{item.title}</div>
-                            {item.summary && <div class="project-grid-summary">{item.summary}</div>}
-                        </a>
-                    ))}
-                </div>
+                </nav>
             </aside>
             <main class="content-panel" transition:name="content-panel" data-bg={background ?? ''}>
                 <slot />
@@ -100,7 +94,6 @@ const currentPath = Astro.url.pathname.replace(/\/$/, "");
                 <div class="lightbox-caption"></div>
             </div>
         </div>
-
         <script>
             function initGridLightbox() {
                 const lightbox = document.getElementById("lightbox");
@@ -213,7 +206,7 @@ const currentPath = Astro.url.pathname.replace(/\/$/, "");
         <script>
             const base = document.body.dataset.base || "";
             let sidebarScrollTop = 0;
-            let homeColumnScrollTops: number[] = [];
+            let homeScrollTop = 0;
             let wasHomePage = false;
 
             function isHomePath(pathname: string) {
@@ -227,9 +220,7 @@ const currentPath = Astro.url.pathname.replace(/\/$/, "");
                 const onHome = isHomePath(window.location.pathname);
                 wasHomePage = onHome;
                 if (onHome) {
-                    homeColumnScrollTops = Array.from(
-                        document.querySelectorAll(".home-columns .col-scroll")
-                    ).map((el) => el.scrollTop);
+                    homeScrollTop = document.querySelector(".home-masonry-scroll")?.scrollTop ?? 0;
                 }
             });
 
@@ -257,16 +248,14 @@ const currentPath = Astro.url.pathname.replace(/\/$/, "");
                 });
 
                 const onHome = isHomePath(path);
-                if (onHome && homeColumnScrollTops.length > 0) {
-                    document.querySelectorAll(".home-columns .col-scroll").forEach((el, i) => {
-                        if (i < homeColumnScrollTops.length) {
-                            el.scrollTop = homeColumnScrollTops[i];
-                        }
-                    });
-                } else {
+                if (onHome && homeScrollTop > 0) {
+                    const el = document.querySelector(".home-masonry-scroll");
+                    if (el) el.scrollTop = homeScrollTop;
+                } else if (!onHome) {
                     document.querySelector(".content-panel")?.scrollTo(0, 0);
                 }
             });
         </script>
+
     </body>
 </html>
