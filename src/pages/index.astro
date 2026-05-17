@@ -36,7 +36,7 @@ const groups = [
         </div>
     </Fragment>
 
-    <div class="home-works-container" data-view="list">
+    <div class="home-works-container" data-view="grid">
         <div class="home-works list-view-content">
             {groups.map((group, i) => (
                 <>
@@ -89,7 +89,7 @@ const groups = [
                 btns.forEach(b => b.classList.toggle('active', b.dataset.view === view));
             }
 
-            const saved = localStorage.getItem('works-view') || 'list';
+            const saved = localStorage.getItem('works-view') || 'grid';
             setView(saved);
 
             btns.forEach(btn => {
