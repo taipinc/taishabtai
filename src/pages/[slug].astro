@@ -1,6 +1,8 @@
 ---
 import { getCollection, render } from "astro:content";
 import SiteLayout from "../layouts/SiteLayout.astro";
+import FeedBlock from "../components/FeedBlock.astro";
+import NullBlock from "../components/NullBlock.astro";
 
 export async function getStaticPaths() {
     const allPosts = await getCollection("posts");
@@ -14,32 +16,42 @@ export async function getStaticPaths() {
 
 const { item } = Astro.props;
 const { Content } = await render(item);
-const { slug, title, year, medium, iframe, background } = item.data;
+const { slug, title, year, medium, iframe, background, dark, type } = item.data;
+const isRecent = type === "recent";
+const fullPageComponents = isRecent ? { Summary: NullBlock, Full: FeedBlock } : {};
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 ---
 
 <SiteLayout
     title={`${title} — Shabtai Pinchevsky`}
     background={background}
-    centerIframe={!!iframe}
-    activeSlug={slug}
-    isWide={!!iframe}
+    dark={dark}
+    centerIframe={!isRecent && !!iframe}
+    activeSlug={isRecent ? undefined : slug}
+    isWide={!isRecent && !!iframe}
 >
-    <div class="project-header-text" slot="center-header">
-        <h2>{title}</h2>
-        <p class="meta">{year}{medium && <><br />{medium}</>}</p>
-    </div>
-    {iframe
-        ? <a href={`${base}/`} class="close-btn" slot="center-header" aria-label="Close">&times;</a>
-        : <a href={`${base}/`} class="close-btn" slot="right-header" aria-label="Close">&times;</a>
-    }
+    {(isRecent || iframe) ? (
+        <Fragment slot="center-header">
+            <div class="project-header-text"><h2>{title}</h2></div>
+            <a href={`${base}/`} class="close-btn" aria-label="Close">&times;</a>
+        </Fragment>
+    ) : (
+        <div class="project-header-text" slot="center-header"><h2>{title}</h2></div>
+    )}
 
-    {iframe ? (
+    {!isRecent && !iframe && (
+        <Fragment slot="right-header">
+            <p class="meta">{year}{medium && <> · {medium}</>}</p>
+            <a href={`${base}/`} class="close-btn" aria-label="Close">&times;</a>
+        </Fragment>
+    )}
+
+    {!isRecent && iframe ? (
         <iframe class="project-iframe" src={iframe} title={title}></iframe>
     ) : (
         <div class="project-body">
             <div class="project-content" data-slug={slug}>
-                <Content />
+                <Content components={fullPageComponents} />
             </div>
         </div>
     )}

@@ -6,9 +6,10 @@ interface Props {
     src: string;
     alt?: string;
     span?: number;
+    refId?: string;
 }
 
-const { src, alt, span } = Astro.props;
+const { src, alt, span, refId } = Astro.props;
 
 const images = import.meta.glob<{ default: ImageMetadata }>(
     "/src/assets/images/**/*.{jpeg,jpg,png,gif,webp}",
@@ -25,7 +26,7 @@ const image = (await imageImport()).default;
 const ar = image.width / image.height;
 ---
 
-<figure style={`--ar: ${ar.toFixed(3)}${span ? `; grid-column: span ${span}` : ""}`}>
+<figure style={`--ar: ${ar.toFixed(3)}${span ? `; grid-column: span ${span}` : ""}`} data-ref={refId || undefined}>
     <Image src={image} alt={alt || ""} />
     {alt && <figcaption class="caption">{alt}</figcaption>}
 </figure>

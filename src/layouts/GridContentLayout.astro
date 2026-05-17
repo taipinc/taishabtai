@@ -16,7 +16,9 @@ interface Props {
 const { title = "Shabtai Pinchevsky", activeSlug, background } = Astro.props;
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
-const allPosts = (await getCollection("posts")).sort((a, b) => b.data.year - a.data.year);
+const allPosts = (await getCollection("posts")).sort(
+    (a, b) => b.data.year - a.data.year,
+);
 const currentPath = Astro.url.pathname.replace(/\/$/, "");
 
 const thumbUrls = new Map<string, string>();
@@ -28,17 +30,19 @@ for (const post of allPosts) {
     }
 }
 
-const navPosts = allPosts.filter(p => p.data.slug && p.data.type !== "text");
+const navPosts = allPosts.filter((p) => p.data.slug && p.data.type !== "text");
 
 const navGroups = [
     { label: "Works", types: ["ongoing", "project"] },
     { label: "Interactive", types: ["interactive"] },
     { label: "Other Works", types: ["other-work"] },
     { label: "Teaching Tools", types: ["teaching-tool"] },
-].map(g => ({
-    label: g.label,
-    items: navPosts.filter(p => g.types.includes(p.data.type)),
-})).filter(g => g.items.length > 0);
+]
+    .map((g) => ({
+        label: g.label,
+        items: navPosts.filter((p) => g.types.includes(p.data.type)),
+    }))
+    .filter((g) => g.items.length > 0);
 ---
 
 <!doctype html>
@@ -48,49 +52,94 @@ const navGroups = [
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>{title}</title>
         <Font cssVariable="--font-serif" preload />
+        <Font cssVariable="--font-heading" preload />
+        <Font cssVariable="--font-condensed" preload />
         <ClientRouter />
     </head>
-    <body data-base={base} data-page={activeSlug ? "content" : "home"} style={background ? `--color-bg: ${background}; --color-sidebar-bg: ${background};` : ''}>
+    <body
+        data-base={base}
+        data-page={activeSlug ? "content" : "home"}
+        style={background
+            ? `--color-bg: ${background}; --color-sidebar-bg: ${background};`
+            : ""}
+    >
         <div class="grid-content-layout">
             <aside class="content-nav" transition:persist>
                 <header class="grid-header">
-                    <a href={`${base}/`} class="artist-name">Shabtai Pinchevsky</a>
+                    <a href={`${base}/`} class="artist-name"
+                        >Shabtai Pinchevsky</a
+                    >
                 </header>
                 <nav class="col-scroll">
-                    {navGroups.map(group => (
-                        <div class="nav-group">
-                            <div class="nav-group-heading">{group.label}</div>
-                            <div class="nav-thumb-grid">
-                                {group.items.map((item) => {
-                                    const thumb = thumbUrls.get(item.data.slug!);
-                                    return (
-                                        <a
-                                            href={`${base}/${item.data.slug}`}
-                                            class:list={["project-grid-item", { active: currentPath === `${base}/${item.data.slug}` }]}
-                                            data-slug={item.data.slug}
-                                        >
-                                            {thumb
-                                                ? <img src={thumb} class="nav-thumb" alt={item.data.title} />
-                                                : <div class="grid-placeholder"></div>
-                                            }
-                                            <div class="project-grid-label">{item.data.title}</div>
-                                        </a>
-                                    );
-                                })}
+                    {
+                        navGroups.map((group) => (
+                            <div class="nav-group">
+                                <div class="nav-group-heading">
+                                    {group.label}
+                                </div>
+                                <div class="nav-thumb-grid">
+                                    {group.items.map((item) => {
+                                        const thumb = thumbUrls.get(
+                                            item.data.slug!,
+                                        );
+                                        return (
+                                            <a
+                                                href={`${base}/${item.data.slug}`}
+                                                class:list={[
+                                                    "project-grid-item",
+                                                    {
+                                                        active:
+                                                            currentPath ===
+                                                            `${base}/${item.data.slug}`,
+                                                    },
+                                                ]}
+                                                data-slug={item.data.slug}
+                                            >
+                                                {thumb ? (
+                                                    <img
+                                                        src={thumb}
+                                                        class="nav-thumb"
+                                                        alt={item.data.title}
+                                                    />
+                                                ) : (
+                                                    <div class="grid-placeholder" />
+                                                )}
+                                                <div class="project-grid-label">
+                                                    {item.data.title}
+                                                </div>
+                                            </a>
+                                        );
+                                    })}
+                                </div>
                             </div>
-                        </div>
-                    ))}
+                        ))
+                    }
                 </nav>
             </aside>
-            <main class="content-panel" transition:name="content-panel" data-bg={background ?? ''}>
+            <main
+                class="content-panel"
+                transition:name="content-panel"
+                data-bg={background ?? ""}
+            >
                 <slot />
             </main>
             <div class="lightbox" id="lightbox">
-                <button class="lightbox-close" aria-label="Close">&times;</button>
-                <button class="lightbox-prev" aria-label="Previous">&lsaquo;</button>
-                <button class="lightbox-next" aria-label="Next">&rsaquo;</button>
+                <button class="lightbox-close" aria-label="Close"
+                    >&times;</button
+                >
+                <button class="lightbox-prev" aria-label="Previous"
+                    >&lsaquo;</button
+                >
+                <button class="lightbox-next" aria-label="Next">&rsaquo;</button
+                >
                 <img src="" alt="" />
-                <div class="lightbox-video"><iframe src="" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe></div>
+                <div class="lightbox-video">
+                    <iframe
+                        src=""
+                        frameborder="0"
+                        allow="autoplay; fullscreen; picture-in-picture"
+                        allowfullscreen></iframe>
+                </div>
                 <div class="lightbox-caption"></div>
             </div>
         </div>
@@ -98,13 +147,27 @@ const navGroups = [
             function initGridLightbox() {
                 const lightbox = document.getElementById("lightbox");
                 if (!lightbox) return;
-                const lbImg = lightbox.querySelector(":scope > img") as HTMLImageElement;
-                const lbVideo = lightbox.querySelector(".lightbox-video") as HTMLElement;
-                const lbIframe = lbVideo.querySelector("iframe") as HTMLIFrameElement;
-                const lbCaption = lightbox.querySelector(".lightbox-caption") as HTMLElement;
-                const btnClose = lightbox.querySelector(".lightbox-close") as HTMLElement;
-                const btnPrev = lightbox.querySelector(".lightbox-prev") as HTMLElement;
-                const btnNext = lightbox.querySelector(".lightbox-next") as HTMLElement;
+                const lbImg = lightbox.querySelector(
+                    ":scope > img",
+                ) as HTMLImageElement;
+                const lbVideo = lightbox.querySelector(
+                    ".lightbox-video",
+                ) as HTMLElement;
+                const lbIframe = lbVideo.querySelector(
+                    "iframe",
+                ) as HTMLIFrameElement;
+                const lbCaption = lightbox.querySelector(
+                    ".lightbox-caption",
+                ) as HTMLElement;
+                const btnClose = lightbox.querySelector(
+                    ".lightbox-close",
+                ) as HTMLElement;
+                const btnPrev = lightbox.querySelector(
+                    ".lightbox-prev",
+                ) as HTMLElement;
+                const btnNext = lightbox.querySelector(
+                    ".lightbox-next",
+                ) as HTMLElement;
 
                 let items: HTMLElement[] = [];
                 let currentIndex = 0;
@@ -112,17 +175,22 @@ const navGroups = [
 
                 function collectRecent() {
                     mode = "recent";
-                    items = Array.from(document.querySelectorAll(".recent-media"));
+                    items = Array.from(
+                        document.querySelectorAll(".recent-media"),
+                    );
                 }
 
                 function collectFigures() {
                     mode = "figures";
-                    items = Array.from(document.querySelectorAll(".project-content figure"));
+                    items = Array.from(
+                        document.querySelectorAll(".project-content figure"),
+                    );
                 }
 
                 function show(index: number) {
                     if (items.length === 0) return;
-                    currentIndex = ((index % items.length) + items.length) % items.length;
+                    currentIndex =
+                        ((index % items.length) + items.length) % items.length;
                     const el = items[currentIndex];
 
                     if (mode === "recent") {
@@ -151,10 +219,13 @@ const navGroups = [
                         lbImg.src = img.src;
                         lbImg.alt = img.alt;
 
-                        let captionText = el.querySelector(".caption")?.textContent || "";
+                        let captionText =
+                            el.querySelector(".caption")?.textContent || "";
                         if (!captionText) {
                             const gallery = el.closest(".gallery");
-                            captionText = gallery?.querySelector(":scope > .caption")?.textContent || "";
+                            captionText =
+                                gallery?.querySelector(":scope > .caption")
+                                    ?.textContent || "";
                         }
                         lbCaption.textContent = captionText;
                     }
@@ -170,14 +241,18 @@ const navGroups = [
                 }
 
                 document.addEventListener("click", (e) => {
-                    const btn = (e.target as HTMLElement).closest(".recent-media");
+                    const btn = (e.target as HTMLElement).closest(
+                        ".recent-media",
+                    );
                     if (btn) {
                         collectRecent();
                         const idx = items.indexOf(btn as HTMLElement);
                         if (idx !== -1) show(idx);
                         return;
                     }
-                    const fig = (e.target as HTMLElement).closest(".project-content figure");
+                    const fig = (e.target as HTMLElement).closest(
+                        ".project-content figure",
+                    );
                     if (fig) {
                         collectFigures();
                         const idx = items.indexOf(fig as HTMLElement);
@@ -186,8 +261,14 @@ const navGroups = [
                 });
 
                 btnClose.addEventListener("click", close);
-                btnPrev.addEventListener("click", (e) => { e.stopPropagation(); show(currentIndex - 1); });
-                btnNext.addEventListener("click", (e) => { e.stopPropagation(); show(currentIndex + 1); });
+                btnPrev.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    show(currentIndex - 1);
+                });
+                btnNext.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    show(currentIndex + 1);
+                });
                 lightbox.addEventListener("click", (e) => {
                     if (e.target === lightbox || e.target === lbImg) close();
                 });
@@ -215,17 +296,24 @@ const navGroups = [
             }
 
             document.addEventListener("astro:before-swap", () => {
-                sidebarScrollTop = document.querySelector(".content-nav .col-scroll")?.scrollTop ?? 0;
+                sidebarScrollTop =
+                    document.querySelector(".content-nav .col-scroll")
+                        ?.scrollTop ?? 0;
 
                 const onHome = isHomePath(window.location.pathname);
                 wasHomePage = onHome;
                 if (onHome) {
-                    homeScrollTop = document.querySelector(".home-masonry-scroll")?.scrollTop ?? 0;
+                    homeScrollTop =
+                        document.querySelector(".home-masonry-scroll")
+                            ?.scrollTop ?? 0;
                 }
             });
 
             function applyBackground() {
-                const bg = document.querySelector(".content-panel")?.getAttribute("data-bg") || "";
+                const bg =
+                    document
+                        .querySelector(".content-panel")
+                        ?.getAttribute("data-bg") || "";
                 if (bg) {
                     document.body.style.setProperty("--color-bg", bg);
                     document.body.style.setProperty("--color-sidebar-bg", bg);
@@ -236,16 +324,21 @@ const navGroups = [
             }
 
             document.addEventListener("astro:after-swap", () => {
-                const sidebar = document.querySelector(".content-nav .col-scroll");
+                const sidebar = document.querySelector(
+                    ".content-nav .col-scroll",
+                );
                 if (sidebar) sidebar.scrollTop = sidebarScrollTop;
 
                 applyBackground();
 
                 const path = window.location.pathname.replace(/\/$/, "");
-                document.querySelectorAll(".content-nav .project-grid-item").forEach((a) => {
-                    const href = a.getAttribute("href")?.replace(/\/$/, "") || "";
-                    a.classList.toggle("active", href === path);
-                });
+                document
+                    .querySelectorAll(".content-nav .project-grid-item")
+                    .forEach((a) => {
+                        const href =
+                            a.getAttribute("href")?.replace(/\/$/, "") || "";
+                        a.classList.toggle("active", href === path);
+                    });
 
                 const onHome = isHomePath(path);
                 if (onHome && homeScrollTop > 0) {
@@ -256,6 +349,5 @@ const navGroups = [
                 }
             });
         </script>
-
     </body>
 </html>

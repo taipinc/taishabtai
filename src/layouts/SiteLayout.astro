@@ -1,34 +1,77 @@
 ---
-import { getCollection } from "astro:content";
+import { getCollection, render } from "astro:content";
 import { ClientRouter } from "astro:transitions";
 import { Font } from "astro:assets";
 import "../styles/global.css";
 import "../styles/grid-layout.css";
+import FeedBlock from "../components/FeedBlock.astro";
+import NullBlock from "../components/NullBlock.astro";
 
 interface Props {
     title?: string;
     background?: string;
+    dark?: boolean;
     centerIframe?: boolean;
     activeSlug?: string;
     isWide?: boolean;
 }
 
-const { title = "Shabtai Pinchevsky", background, centerIframe = false, activeSlug, isWide = false } = Astro.props;
+const {
+    title = "Shabtai Pinchevsky",
+    background,
+    dark = false,
+    centerIframe = false,
+    activeSlug,
+    isWide = false,
+} = Astro.props;
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 
+const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+function formatRecentDate(data: { year: number; month?: number; day?: number }) {
+    const { year, month, day } = data;
+    if (month && day) return `${day} ${MONTHS[month - 1]} ${year}`;
+    if (month) return `${MONTHS[month - 1]} ${year}`;
+    return String(year);
+}
+
+function recentDateKey(data: { year: number; month?: number; day?: number }) {
+    return data.year * 10000 + (data.month ?? 0) * 100 + (data.day ?? 0);
+}
+
+const recentRaw = (await getCollection("posts"))
+    .filter((p) => p.data.type === "recent")
+    .sort((a, b) => {
+        const ao = a.data.order ?? Infinity;
+        const bo = b.data.order ?? Infinity;
+        if (ao !== bo) return ao - bo;
+        return recentDateKey(b.data) - recentDateKey(a.data);
+    });
+
+const recentItems = await Promise.all(
+    recentRaw.map(async (item) => {
+        const { Content } = await render(item);
+        const isSplit = !!item.body?.includes("<Summary");
+        return { item, Content, isSplit };
+    }),
+);
+
 const allPosts = (await getCollection("posts"))
-    .filter(p => p.data.slug && p.data.type !== "text")
+    .filter((p) => p.data.slug && p.data.type !== "text")
     .sort((a, b) => b.data.year - a.data.year);
 
 const navGroups = [
-    { label: "Works", types: ["ongoing", "project"] },
+    { label: "Ongoing", types: ["ongoing"] },
+    { label: "Selected", types: ["project"] },
     { label: "Interactive", types: ["interactive"] },
     { label: "Other Works", types: ["other-work"] },
     { label: "Teaching Tools", types: ["teaching-tool"] },
-].map(g => ({
-    label: g.label,
-    items: allPosts.filter(p => g.types.includes(p.data.type)),
-})).filter(g => g.items.length > 0);
+]
+    .map((g) => ({
+        label: g.label,
+        items: allPosts.filter((p) => g.types.includes(p.data.type)),
+    }))
+    .filter((g) => g.items.length > 0);
 ---
 
 <!doctype html>
@@ -38,36 +81,71 @@ const navGroups = [
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>{title}</title>
         <Font cssVariable="--font-serif" preload />
+        <Font cssVariable="--font-heading" preload />
+        <Font cssVariable="--font-condensed" preload />
         <ClientRouter />
     </head>
-    <body data-base={base} data-page={activeSlug ? "content" : "home"} style={background ? `--color-bg: ${background};` : ""}>
+    <body
+        data-base={base}
+        data-page={activeSlug ? "content" : "home"}
+        data-dark={dark ? "true" : undefined}
+        style={background ? `--color-bg: ${background};` : ""}
+    >
         <div class:list={["home-grid", { "grid-wide-content": isWide }]}>
-
             <div class="home-col" transition:persist="col-left">
                 <div class="home-col-header">
-                    <a href={`${base}/`} class="home-name">Shabtai Pinchevsky</a>
+                    <a href={`${base}/`} class="home-name">Shabtai Pinchevsky</a
+                    >
                 </div>
-                <div class="home-col-body">
+                <div class="home-col-body left-col-body">
                     <div class="left-bio">
-                        <p>I'm a photographer and digital media artist whose practice examines the politics of image-making in contested geographies, particularly Israel/Palestine. I work across 3D modeling, mapping, drone photography, and archival research to examine photography's entanglements with colonial and territorial politics.</p>
-                        <p>I'm an Assistant Professor of Photography at Parsons School of Design, The New School.</p>
+                        <p>
+                            I'm a photographer and digital media artist whose
+                            practice examines the politics of image-making in
+                            contested geographies, particularly
+                            Israel/Palestine. I work across 3D modeling,
+                            mapping, drone photography, and archival research to
+                            examine photography's entanglements with colonial
+                            and territorial politics.
+                        </p>
+                        <p>
+                            I'm an Assistant Professor of Photography at Parsons
+                            School of Design, The New School.
+                        </p>
                     </div>
                     <div class="home-works left-nav">
-                        {navGroups.map((group, i) => (
-                            <>
-                                {i > 0 && <hr class="group-hr" />}
-                                <ul class="work-list">
-                                    {group.items.map(item => (
-                                        <li>
-                                            <a
-                                                href={`${base}/${item.data.slug}`}
-                                                class:list={[{ active: item.data.slug === activeSlug }]}
-                                            >{item.data.title}</a>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </>
-                        ))}
+                        {
+                            navGroups.map((group, i) => (
+                                <>
+                                    {i > 0 && <hr class="group-hr" />}
+                                    <span class="left-nav-category">{group.label}</span>
+                                    <ul class="work-list">
+                                        {group.items.map((item) => (
+                                            <li>
+                                                <a
+                                                    href={`${base}/${item.data.slug}`}
+                                                    class:list={[
+                                                        {
+                                                            active:
+                                                                item.data
+                                                                    .slug ===
+                                                                activeSlug,
+                                                        },
+                                                    ]}
+                                                >
+                                                    {item.data.title}
+                                                </a>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </>
+                            ))
+                        }
+                    </div>
+                    <div class="left-contact">
+                        <a href="mailto:tai.shabtai@gmail.com">tai.shabtai@gmail.com</a>
+                        <a href="mailto:pinchevs@newschool.edu">pinchevs@newschool.edu</a>
+                        <a href="https://www.instagram.com/shabtaipinchevsky/" target="_blank" rel="noopener">@shabtaipinchevsky</a>
                     </div>
                 </div>
             </div>
@@ -76,32 +154,92 @@ const navGroups = [
                 <div class="home-col-header">
                     <slot name="center-header" />
                 </div>
-                <div class:list={["home-col-body", "center-col-body", { "col-iframe": centerIframe }]}>
+                <div
+                    class:list={[
+                        "home-col-body",
+                        "center-col-body",
+                        { "col-iframe": centerIframe },
+                    ]}
+                >
                     <slot />
                 </div>
             </div>
 
-            {!isWide && (
-                <div class="home-col">
-                    <div class="home-col-header">
-                        <slot name="right-header" />
+            {
+                !isWide && (
+                    <div class="home-col">
+                        <div class="home-col-header">
+                            <span class="recent-col-label">Recent</span>
+                            <slot name="right-header" />
+                        </div>
+                        <div class="home-col-body" id="right-col-body">
+                            <div class="recent-feed">
+                                {recentItems.map(({ item, Content, isSplit }) => (
+                                    <div class="recent-item">
+                                        <div class="recent-item-date">
+                                            {formatRecentDate(item.data)}
+                                        </div>
+                                        {item.data.slug ? (
+                                            <a href={`${base}/${item.data.slug}`} class="recent-item-title">{item.data.title}</a>
+                                        ) : (
+                                            <span class="recent-item-title">{item.data.title}</span>
+                                        )}
+                                        <div class="recent-item-body">
+                                            <Content components={{ Summary: FeedBlock, Full: NullBlock }} />
+                                        </div>
+                                        {isSplit && item.data.slug && (
+                                            <a
+                                                href={`${base}/${item.data.slug}`}
+                                                class="recent-read-more"
+                                            >
+                                                Read more
+                                            </a>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
                     </div>
-                    <div class="home-col-body" id="right-col-body"></div>
-                </div>
-            )}
-
+                )
+            }
         </div>
 
         <div class="lightbox" id="lightbox">
             <button class="lightbox-close" aria-label="Close">&times;</button>
             <button class="lightbox-prev" aria-label="Previous">
-                <svg width="10" height="18" viewBox="0 0 10 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="8,1 1,9 8,17"/></svg>
+                <svg
+                    width="10"
+                    height="18"
+                    viewBox="0 0 10 18"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    ><polyline points="8,1 1,9 8,17"></polyline></svg
+                >
             </button>
             <button class="lightbox-next" aria-label="Next">
-                <svg width="10" height="18" viewBox="0 0 10 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,1 9,9 2,17"/></svg>
+                <svg
+                    width="10"
+                    height="18"
+                    viewBox="0 0 10 18"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    ><polyline points="2,1 9,9 2,17"></polyline></svg
+                >
             </button>
             <img src="" alt="" />
-            <div class="lightbox-video"><iframe src="" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe></div>
+            <div class="lightbox-video">
+                <iframe
+                    src=""
+                    frameborder="0"
+                    allow="autoplay; fullscreen; picture-in-picture"
+                    allowfullscreen></iframe>
+            </div>
             <div class="lightbox-caption"></div>
         </div>
 
@@ -109,20 +247,35 @@ const navGroups = [
             function initLightbox() {
                 const lightbox = document.getElementById("lightbox");
                 if (!lightbox) return;
-                const lbImg = lightbox.querySelector(":scope > img") as HTMLImageElement;
-                const lbVideo = lightbox.querySelector(".lightbox-video") as HTMLElement;
-                const lbIframe = lbVideo.querySelector("iframe") as HTMLIFrameElement;
-                const lbCaption = lightbox.querySelector(".lightbox-caption") as HTMLElement;
-                const btnClose = lightbox.querySelector(".lightbox-close") as HTMLElement;
-                const btnPrev = lightbox.querySelector(".lightbox-prev") as HTMLElement;
-                const btnNext = lightbox.querySelector(".lightbox-next") as HTMLElement;
+                const lbImg = lightbox.querySelector(
+                    ":scope > img",
+                ) as HTMLImageElement;
+                const lbVideo = lightbox.querySelector(
+                    ".lightbox-video",
+                ) as HTMLElement;
+                const lbIframe = lbVideo.querySelector(
+                    "iframe",
+                ) as HTMLIFrameElement;
+                const lbCaption = lightbox.querySelector(
+                    ".lightbox-caption",
+                ) as HTMLElement;
+                const btnClose = lightbox.querySelector(
+                    ".lightbox-close",
+                ) as HTMLElement;
+                const btnPrev = lightbox.querySelector(
+                    ".lightbox-prev",
+                ) as HTMLElement;
+                const btnNext = lightbox.querySelector(
+                    ".lightbox-next",
+                ) as HTMLElement;
 
                 let items: HTMLElement[] = [];
                 let currentIndex = 0;
 
                 function show(index: number) {
                     if (items.length === 0) return;
-                    currentIndex = ((index % items.length) + items.length) % items.length;
+                    currentIndex =
+                        ((index % items.length) + items.length) % items.length;
                     const fig = items[currentIndex];
                     const img = fig.querySelector("img");
                     if (!img) return;
@@ -131,29 +284,52 @@ const navGroups = [
                     lbImg.style.display = "";
                     lbImg.src = img.src;
                     lbImg.alt = img.alt;
-                    let caption = fig.querySelector(".caption")?.textContent || "";
-                    if (!caption) caption = fig.closest(".gallery")?.querySelector(":scope > .caption")?.textContent || "";
+                    let caption =
+                        fig.querySelector(".caption")?.textContent || "";
+                    if (!caption)
+                        caption =
+                            fig
+                                .closest(".gallery")
+                                ?.querySelector(":scope > .caption")
+                                ?.textContent || "";
                     lbCaption.textContent = caption;
                     lightbox.classList.add("active");
                     btnPrev.style.display = items.length > 1 ? "" : "none";
                     btnNext.style.display = items.length > 1 ? "" : "none";
                 }
 
-                function close() { lightbox.classList.remove("active"); lbIframe.src = ""; }
+                function close() {
+                    lightbox.classList.remove("active");
+                    lbIframe.src = "";
+                }
 
                 document.addEventListener("click", (e) => {
-                    const fig = (e.target as HTMLElement).closest(".project-content figure");
+                    const fig = (e.target as HTMLElement).closest(
+                        ".project-content figure",
+                    );
                     if (fig) {
-                        items = Array.from(document.querySelectorAll(".project-content figure"));
+                        items = Array.from(
+                            document.querySelectorAll(
+                                ".project-content figure",
+                            ),
+                        );
                         const idx = items.indexOf(fig as HTMLElement);
                         if (idx !== -1) show(idx);
                     }
                 });
 
                 btnClose.addEventListener("click", close);
-                btnPrev.addEventListener("click", (e) => { e.stopPropagation(); show(currentIndex - 1); });
-                btnNext.addEventListener("click", (e) => { e.stopPropagation(); show(currentIndex + 1); });
-                lightbox.addEventListener("click", (e) => { if (e.target === lightbox || e.target === lbImg) close(); });
+                btnPrev.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    show(currentIndex - 1);
+                });
+                btnNext.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    show(currentIndex + 1);
+                });
+                lightbox.addEventListener("click", (e) => {
+                    if (e.target === lightbox || e.target === lbImg) close();
+                });
                 document.addEventListener("keydown", (e) => {
                     if (!lightbox.classList.contains("active")) return;
                     if (e.key === "Escape") close();
@@ -177,14 +353,20 @@ const navGroups = [
             }
 
             document.addEventListener("astro:before-swap", () => {
-                leftColScrollTop = document.querySelector(".home-col .home-col-body")?.scrollTop ?? 0;
+                leftColScrollTop =
+                    document.querySelector(".home-col .home-col-body")
+                        ?.scrollTop ?? 0;
                 if (isHome()) {
-                    centerScrollTop = document.querySelector(".center-col-body")?.scrollTop ?? 0;
+                    centerScrollTop =
+                        document.querySelector(".center-col-body")?.scrollTop ??
+                        0;
                 }
             });
 
             document.addEventListener("astro:after-swap", () => {
-                const leftCol = document.querySelector(".home-col .home-col-body");
+                const leftCol = document.querySelector(
+                    ".home-col .home-col-body",
+                );
                 if (leftCol) leftCol.scrollTop = leftColScrollTop;
 
                 if (isHome() && centerScrollTop > 0) {
@@ -194,29 +376,163 @@ const navGroups = [
 
                 const base = document.body.dataset.base || "";
                 const path = window.location.pathname.replace(/\/$/, "");
-                document.querySelectorAll(".left-nav .work-list a").forEach((a) => {
-                    const href = (a as HTMLAnchorElement).href.replace(/\/$/, "");
-                    const slug = href.split("/").pop() || "";
-                    a.classList.toggle("active", path.endsWith("/" + slug) && slug !== "");
-                });
+                document
+                    .querySelectorAll(".left-nav .work-list a")
+                    .forEach((a) => {
+                        const href = (a as HTMLAnchorElement).href.replace(
+                            /\/$/,
+                            "",
+                        );
+                        const slug = href.split("/").pop() || "";
+                        a.classList.toggle(
+                            "active",
+                            path.endsWith("/" + slug) && slug !== "",
+                        );
+                    });
             });
         </script>
 
         <script>
             let splitAbort: AbortController | null = null;
+            let refAbort: AbortController | null = null;
+
+            type Pair = {
+                path: SVGPathElement;
+                text: HTMLElement;
+                fig: HTMLElement;
+            };
+
+            function initRefConnectors() {
+                document.querySelector(".ref-svg-overlay")?.remove();
+                if (refAbort) {
+                    refAbort.abort();
+                    refAbort = null;
+                }
+
+                const textEls = new Map<string, HTMLElement>();
+                const figEls = new Map<string, HTMLElement>();
+
+                document
+                    .querySelectorAll<HTMLElement>("[data-ref]")
+                    .forEach((el) => {
+                        const id = el.getAttribute("data-ref")!;
+                        if (el.tagName === "SPAN") textEls.set(id, el);
+                        else if (el.tagName === "FIGURE") figEls.set(id, el);
+                    });
+
+                const pairs: Pair[] = [];
+                textEls.forEach((textEl, id) => {
+                    const figEl = figEls.get(id);
+                    if (figEl)
+                        pairs.push({
+                            path: null as any,
+                            text: textEl,
+                            fig: figEl,
+                        });
+                });
+
+                if (pairs.length === 0) return;
+
+                const svgNS = "http://www.w3.org/2000/svg";
+                const svg = document.createElementNS(svgNS, "svg");
+                svg.classList.add("ref-svg-overlay");
+                svg.setAttribute(
+                    "style",
+                    "position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:100;",
+                );
+
+                const color =
+                    getComputedStyle(document.documentElement)
+                        .getPropertyValue("--color-highlight")
+                        .trim() || "#ee5f4a";
+
+                pairs.forEach((pair) => {
+                    const path = document.createElementNS(svgNS, "path");
+                    path.setAttribute("stroke", color);
+                    path.setAttribute("stroke-width", "2");
+                    path.setAttribute("fill", "none");
+                    svg.appendChild(path);
+                    pair.path = path;
+                });
+
+                document.body.appendChild(svg);
+
+                function update() {
+                    pairs.forEach(({ path, text, fig }) => {
+                        const rects = text.getClientRects();
+                        const tRect = rects[rects.length - 1];
+                        const fRect = fig.getBoundingClientRect();
+
+                        if (!tRect || fRect.width === 0) {
+                            path.setAttribute("d", "");
+                            return;
+                        }
+
+                        // Text in right col, image in center col.
+                        // x0 ≈ x1 (both near column boundary), so drive tension with dy.
+                        // Exit left from text underline, arrive from right at figure.
+                        const x0 = tRect.left;
+                        const y0 = tRect.bottom + 3;
+                        const x1 = fRect.right;
+                        const y1 = fRect.top + fRect.height / 2;
+
+                        const dy = Math.abs(y1 - y0);
+                        const t = Math.max(dy * 0.45, 40);
+
+                        path.setAttribute(
+                            "d",
+                            `M ${x0},${y0} C ${x0 - t},${y0} ${x1 + t},${y1} ${x1},${y1}`,
+                        );
+                    });
+                }
+
+                refAbort = new AbortController();
+                const { signal } = refAbort;
+
+                update();
+
+                // Redraw on scroll of either column
+                document
+                    .querySelector(".center-col-body")
+                    ?.addEventListener("scroll", update, { signal });
+                document
+                    .getElementById("right-col-body")
+                    ?.addEventListener("scroll", update, { signal });
+                window.addEventListener("resize", update, { signal });
+
+                // Redraw once images finish loading (figures may not have height yet)
+                pairs.forEach(({ fig }) => {
+                    const img = fig.querySelector("img");
+                    if (img && !img.complete) {
+                        img.addEventListener("load", update, {
+                            once: true,
+                            signal,
+                        } as any);
+                    }
+                });
+            }
 
             function initSplitPane() {
                 if (splitAbort) splitAbort.abort();
                 splitAbort = null;
 
-                const centerBody = document.querySelector(".center-col-body") as HTMLElement | null;
-                const rightBody = document.getElementById("right-col-body") as HTMLElement | null;
+                const centerBody = document.querySelector(
+                    ".center-col-body",
+                ) as HTMLElement | null;
+                const rightBody = document.getElementById(
+                    "right-col-body",
+                ) as HTMLElement | null;
                 if (!centerBody || !rightBody) return;
 
                 // Teleport all .text-pane elements into the right column
-                const panes = Array.from(centerBody.querySelectorAll(".text-pane"));
+                const panes = Array.from(
+                    centerBody.querySelectorAll(".text-pane"),
+                );
                 if (panes.length === 0) return;
-                panes.forEach(el => rightBody.appendChild(el));
+                panes.forEach((el) => rightBody.appendChild(el));
+
+                // Init connectors after text has been teleported to right col
+                initRefConnectors();
 
                 // Proportional scroll sync: both columns reach their end at the same time
                 splitAbort = new AbortController();
@@ -231,15 +547,25 @@ const navGroups = [
                     const pct = source.scrollTop / sourceMax;
                     const targetMax = target.scrollHeight - target.clientHeight;
                     target.scrollTop = pct * targetMax;
-                    requestAnimationFrame(() => { syncing = false; });
+                    requestAnimationFrame(() => {
+                        syncing = false;
+                    });
                 }
 
                 // Media pane drives sync; text pane redirects its wheel input to media pane
-                centerBody.addEventListener("scroll", () => syncScroll(centerBody, rightBody), { signal });
-                rightBody.addEventListener("wheel", (e) => {
-                    e.preventDefault();
-                    centerBody.scrollTop += e.deltaY;
-                }, { passive: false, signal });
+                centerBody.addEventListener(
+                    "scroll",
+                    () => syncScroll(centerBody, rightBody),
+                    { signal },
+                );
+                rightBody.addEventListener(
+                    "wheel",
+                    (e) => {
+                        e.preventDefault();
+                        centerBody.scrollTop += e.deltaY;
+                    },
+                    { passive: false, signal },
+                );
             }
 
             initSplitPane();

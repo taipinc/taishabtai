@@ -17,12 +17,13 @@ const { title = "Shabtai Pinchevsky" } = Astro.props;
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>{title}</title>
-        <Font cssVariable="--font-body" preload />
+        <Font cssVariable="--font-serif" preload />
         <Font cssVariable="--font-heading" preload />
+        <Font cssVariable="--font-condensed" preload />
         <ClientRouter />
         <script is:inline>
-            if (localStorage.getItem('sidebar-view') === 'grid') {
-                document.documentElement.classList.add('grid-mode');
+            if (localStorage.getItem("sidebar-view") === "grid") {
+                document.documentElement.classList.add("grid-mode");
             }
         </script>
     </head>
@@ -38,7 +39,8 @@ const { title = "Shabtai Pinchevsky" } = Astro.props;
 
         <div class="lightbox" id="lightbox">
             <button class="lightbox-close" aria-label="Close">&times;</button>
-            <button class="lightbox-prev" aria-label="Previous">&lsaquo;</button>
+            <button class="lightbox-prev" aria-label="Previous">&lsaquo;</button
+            >
             <button class="lightbox-next" aria-label="Next">&rsaquo;</button>
             <img src="" alt="" />
             <div class="lightbox-caption"></div>
@@ -47,12 +49,13 @@ const { title = "Shabtai Pinchevsky" } = Astro.props;
             let sidebarScrollTop = 0;
 
             document.addEventListener("astro:before-swap", () => {
-                sidebarScrollTop = document.querySelector(".sidebar")?.scrollTop ?? 0;
+                sidebarScrollTop =
+                    document.querySelector(".sidebar")?.scrollTop ?? 0;
             });
 
             document.addEventListener("astro:after-swap", () => {
-                if (localStorage.getItem('sidebar-view') === 'grid') {
-                    document.documentElement.classList.add('grid-mode');
+                if (localStorage.getItem("sidebar-view") === "grid") {
+                    document.documentElement.classList.add("grid-mode");
                 }
 
                 const sidebar = document.querySelector(".sidebar");
@@ -60,7 +63,8 @@ const { title = "Shabtai Pinchevsky" } = Astro.props;
 
                 const path = window.location.pathname.replace(/\/$/, "");
                 document.querySelectorAll(".sidebar-nav li a").forEach((a) => {
-                    const href = a.getAttribute("href")?.replace(/\/$/, "") || "";
+                    const href =
+                        a.getAttribute("href")?.replace(/\/$/, "") || "";
                     a.classList.toggle("active", href === path);
                 });
 
@@ -82,13 +86,15 @@ const { title = "Shabtai Pinchevsky" } = Astro.props;
 
                 function collectFigures() {
                     figures = Array.from(
-                        document.querySelectorAll(".project-content figure")
+                        document.querySelectorAll(".project-content figure"),
                     );
                 }
 
                 function show(index: number) {
                     if (figures.length === 0) return;
-                    currentIndex = ((index % figures.length) + figures.length) % figures.length;
+                    currentIndex =
+                        ((index % figures.length) + figures.length) %
+                        figures.length;
                     const fig = figures[currentIndex];
                     const img = fig.querySelector("img");
                     const caption = fig.querySelector(".caption");
@@ -98,7 +104,8 @@ const { title = "Shabtai Pinchevsky" } = Astro.props;
                     let captionText = caption?.textContent || "";
                     if (!captionText) {
                         const gallery = fig.closest(".gallery");
-                        const galleryCaption = gallery?.querySelector(":scope > .caption");
+                        const galleryCaption =
+                            gallery?.querySelector(":scope > .caption");
                         captionText = galleryCaption?.textContent || "";
                     }
 
@@ -117,7 +124,9 @@ const { title = "Shabtai Pinchevsky" } = Astro.props;
 
                 // Click on figures
                 document.addEventListener("click", (e) => {
-                    const fig = (e.target as HTMLElement).closest(".project-content figure");
+                    const fig = (e.target as HTMLElement).closest(
+                        ".project-content figure",
+                    );
                     if (fig) {
                         collectFigures();
                         const idx = figures.indexOf(fig as HTMLElement);
@@ -126,8 +135,14 @@ const { title = "Shabtai Pinchevsky" } = Astro.props;
                 });
 
                 btnClose.addEventListener("click", close);
-                btnPrev.addEventListener("click", (e) => { e.stopPropagation(); show(currentIndex - 1); });
-                btnNext.addEventListener("click", (e) => { e.stopPropagation(); show(currentIndex + 1); });
+                btnPrev.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    show(currentIndex - 1);
+                });
+                btnNext.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    show(currentIndex + 1);
+                });
 
                 // Click backdrop to close
                 lightbox.addEventListener("click", (e) => {

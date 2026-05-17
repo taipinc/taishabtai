@@ -1,0 +1,7 @@
+---
+interface Props {
+    id: string;
+}
+const { id } = Astro.props;
+---
+<span data-ref={id} class="text-ref"><slot /></span>
