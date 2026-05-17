@@ -735,6 +735,15 @@ body[data-page="content"] .recent-col-label {
     display: none;
 }
 
+/* Recent-post pages keep the feed visible in the right column on desktop */
+body[data-recent="true"] .recent-feed {
+    display: flex;
+}
+
+body[data-recent="true"] .recent-col-label {
+    display: inline;
+}
+
 .recent-col-label {
     font-family: var(--font-heading);
 }
@@ -1154,6 +1163,19 @@ body[data-page="content"] .recent-col-label {
     .home-works-grid {
         grid-template-columns: repeat(3, 1fr);
         row-gap: 2rem;
+    }
+
+    /* List view: category labels float above the first title instead of overlapping it */
+    .list-view-content .work-list li {
+        position: static;
+    }
+
+    .list-view-content .group-label {
+        position: static;
+        transform: none;
+        display: block;
+        text-align: left;
+        margin-bottom: var(--space-xs);
     }
 
     /* iframe pages: give the iframe a usable height when stacked */

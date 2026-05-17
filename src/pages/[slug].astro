@@ -27,8 +27,9 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
     background={background}
     dark={dark}
     centerIframe={!isRecent && !!iframe}
-    activeSlug={isRecent ? undefined : slug}
-    isWide={!isRecent && !!iframe}
+    activeSlug={slug}
+    isRecent={isRecent}
+    isWide={!!iframe}
 >
     {(isRecent || iframe) ? (
         <Fragment slot="center-header">
