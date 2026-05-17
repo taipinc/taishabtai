@@ -922,7 +922,6 @@ body[data-recent="true"] .recent-col-label {
 
 .center-header-title {
     font-family: var(--font-heading);
-    font-size: 0.95rem;
     line-height: 1;
     color: var(--color-text);
 }
@@ -932,7 +931,6 @@ body[data-recent="true"] .recent-col-label {
     align-items: center;
     gap: 0.3em;
     font-family: var(--font-heading);
-    font-size: 0.95rem;
     line-height: 1;
 }
 
