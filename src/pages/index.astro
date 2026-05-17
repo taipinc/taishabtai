@@ -22,11 +22,19 @@ const groups = [
 ---
 
 <SiteLayout>
-    <div slot="center-header" class="works-view-toggle">
-        <button class="works-view-btn" data-view="list">list</button>
-        <span class="works-view-sep">/</span>
-        <button class="works-view-btn" data-view="grid">grid</button>
-    </div>
+    <Fragment slot="center-header">
+        <span class="center-header-title">Works</span>
+        <div class="section-tabs">
+            <button class="section-tab-btn" data-section="works">Works</button>
+            <span class="section-tab-sep">/</span>
+            <button class="section-tab-btn" data-section="recent">Recent</button>
+        </div>
+        <div class="works-view-toggle">
+            <button class="works-view-btn" data-view="list">list</button>
+            <span class="works-view-sep">/</span>
+            <button class="works-view-btn" data-view="grid">grid</button>
+        </div>
+    </Fragment>
 
     <div class="home-works-container" data-view="list">
         <div class="home-works list-view-content">
@@ -93,7 +101,33 @@ const groups = [
             });
         }
 
+        function initSectionTabs() {
+            const homeGrid = document.querySelector<HTMLElement>('.home-grid');
+            const tabs = document.querySelectorAll<HTMLButtonElement>('.section-tab-btn');
+            if (!homeGrid || !tabs.length) return;
+
+            function setSection(section: string) {
+                homeGrid!.dataset.section = section;
+                tabs.forEach(t => t.classList.toggle('active', t.dataset.section === section));
+            }
+
+            const saved = localStorage.getItem('home-section') || 'works';
+            setSection(saved);
+
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const section = tab.dataset.section!;
+                    setSection(section);
+                    localStorage.setItem('home-section', section);
+                });
+            });
+        }
+
         initWorksViewToggle();
-        document.addEventListener('astro:after-swap', initWorksViewToggle);
+        initSectionTabs();
+        document.addEventListener('astro:after-swap', () => {
+            initWorksViewToggle();
+            initSectionTabs();
+        });
     </script>
 </SiteLayout>

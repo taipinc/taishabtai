@@ -552,7 +552,10 @@ const navGroups = [
                     });
                 }
 
-                // Media pane drives sync; text pane redirects its wheel input to media pane
+                // Media pane drives sync; text pane redirects its wheel input to media pane.
+                // On mobile (≤900px) we stack vertically and use page-level scroll, so skip both.
+                if (window.matchMedia("(max-width: 900px)").matches) return;
+
                 centerBody.addEventListener(
                     "scroll",
                     () => syncScroll(centerBody, rightBody),

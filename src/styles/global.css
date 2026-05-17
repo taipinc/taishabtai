@@ -909,6 +909,43 @@ body[data-page="content"] .recent-col-label {
     pointer-events: none;
 }
 
+/* Center column header: title + section tabs (mobile) + view toggle */
+
+.center-header-title {
+    font-family: var(--font-heading);
+    font-size: 0.95rem;
+    line-height: 1;
+    color: var(--color-text);
+}
+
+.section-tabs {
+    display: none;
+    align-items: center;
+    gap: 0.3em;
+    font-family: var(--font-heading);
+    font-size: 0.95rem;
+    line-height: 1;
+}
+
+.section-tab-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: inherit;
+    padding: 0;
+    opacity: 0.3;
+    color: var(--color-text);
+}
+
+.section-tab-btn.active {
+    opacity: 1;
+}
+
+.section-tab-sep {
+    opacity: 0.35;
+}
+
 /* Works view toggle (center column header) */
 
 .works-view-toggle {
@@ -1046,4 +1083,156 @@ body[data-page="content"] .recent-col-label {
         #d8d7d6 calc(50% + 0.5px),
         transparent calc(50% + 0.5px)
     );
+}
+
+/* ─────────────────────────────────────────
+   Mobile / tablet (≤ 900px): stack columns
+   ───────────────────────────────────────── */
+
+@media (max-width: 900px) {
+    html,
+    body {
+        overflow: auto;
+        height: auto;
+    }
+
+    .home-grid,
+    .home-grid.grid-wide-content {
+        grid-template-columns: 1fr;
+        height: auto;
+    }
+
+    .home-col {
+        border-right: none;
+        overflow: visible;
+        min-height: 0;
+    }
+
+    .home-col + .home-col {
+        border-top: 1px solid var(--color-divider);
+    }
+
+    .home-col-body {
+        flex: none;
+        overflow: visible;
+    }
+
+    /* Center header: hide desktop title, show section tabs (homepage only) */
+    body[data-page="home"] .center-header-title {
+        display: none;
+    }
+
+    body[data-page="home"] .section-tabs {
+        display: flex;
+    }
+
+    /* Section toggle: control which body shows */
+    body[data-page="home"] .home-grid[data-section="works"] > .home-col:nth-child(3) {
+        display: none;
+    }
+
+    body[data-page="home"] .home-grid[data-section="recent"] .center-col-body {
+        display: none;
+    }
+
+    body[data-page="home"] .home-grid[data-section="recent"] .works-view-toggle {
+        display: none;
+    }
+
+    /* When section=recent: center header's bottom border serves as divider,
+       so suppress right col's top border to avoid doubling */
+    body[data-page="home"] .home-grid[data-section="recent"] > .home-col:nth-child(3) {
+        border-top: none;
+    }
+
+    /* Hide right column's header on mobile homepage — tabs in center header replace it */
+    body[data-page="home"] .home-grid > .home-col:nth-child(3) > .home-col-header {
+        display: none;
+    }
+
+    /* Works grid: 3 columns on tablet */
+    .home-works-grid {
+        grid-template-columns: repeat(3, 1fr);
+        row-gap: 2rem;
+    }
+
+    /* iframe pages: give the iframe a usable height when stacked */
+    .center-col-body.col-iframe {
+        min-height: 70vh;
+    }
+
+    .center-col-body.col-iframe .project-iframe {
+        min-height: 70vh;
+    }
+
+    /* Lightbox: cover full viewport on mobile */
+    .lightbox {
+        position: fixed;
+        left: 0;
+    }
+
+    /* ── Content pages: hide left col, reorder right-header → center-header → bodies ── */
+
+    /* Flatten .home-col so its children become direct grid items, enabling cross-column ordering */
+    body[data-page="content"] .home-col {
+        display: contents;
+    }
+
+    /* Hide the left column entirely (artist name header + nav/contact body) */
+    body[data-page="content"] .home-grid > .home-col:nth-child(1) {
+        display: none;
+    }
+
+    /* Right col header (meta + close) → first, flush with the title below it */
+    body[data-page="content"] .home-grid > .home-col:nth-child(3) > .home-col-header {
+        order: 1;
+        border-bottom: none;
+    }
+
+    /* Recent post pages have no meta → hide the empty bar */
+    body[data-page="content"]
+        .home-grid
+        > .home-col:nth-child(3)
+        > .home-col-header:not(:has(.meta)) {
+        display: none;
+    }
+
+    /* Center col header (title) → second */
+    body[data-page="content"] .home-grid > .home-col:nth-child(2) > .home-col-header {
+        order: 2;
+    }
+
+    /* Center col body → third */
+    body[data-page="content"] .home-grid > .home-col:nth-child(2) > .home-col-body {
+        order: 3;
+    }
+
+    /* Right col body (split-pane text-pane content) → fourth, with hr above */
+    body[data-page="content"] .home-grid > .home-col:nth-child(3) > .home-col-body {
+        order: 4;
+        border-top: 1px solid var(--color-divider);
+    }
+
+    /* Right body is empty (only hidden recent-feed) on non-split-pane projects → hide */
+    body[data-page="content"]
+        .home-grid
+        > .home-col:nth-child(3)
+        > .home-col-body:not(:has(.text-pane)) {
+        display: none;
+    }
+
+    /* Split-pane connectors are positioned by viewport coords — broken when stacked */
+    .ref-svg-overlay {
+        display: none !important;
+    }
+}
+
+/* ─────────────────────────────────────────
+   Phones (≤ 500px): drop works grid to 2 col
+   ───────────────────────────────────────── */
+
+@media (max-width: 500px) {
+    .home-works-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }
