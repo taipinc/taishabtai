@@ -25,8 +25,7 @@ function rehypeRemoveEmptyParagraphs() {
 }
 
 export default defineConfig({
-  site: "https://taipinc.github.io",
-  base: "/taishabtai",
+  site: "https://taishabtai.com",
   integrations: [
     mdx({
       rehypePlugins: [
