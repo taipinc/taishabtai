@@ -18,7 +18,9 @@ const { item } = Astro.props;
 const { Content } = await render(item);
 const { slug, title, year, medium, iframe, background, dark, type } = item.data;
 const isRecent = type === "recent";
-const fullPageComponents = isRecent ? { Summary: NullBlock, Full: FeedBlock } : {};
+const fullPageComponents = isRecent
+    ? { Summary: NullBlock, Full: FeedBlock }
+    : {};
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 ---
 
@@ -31,29 +33,51 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
     isRecent={isRecent}
     isWide={!!iframe}
 >
-    {(isRecent || iframe) ? (
-        <Fragment slot="center-header">
-            <div class="project-header-text"><h2>{title}</h2></div>
-            <a href={`${base}/`} class="close-btn" aria-label="Close">&times;</a>
-        </Fragment>
-    ) : (
-        <div class="project-header-text" slot="center-header"><h2>{title}</h2></div>
-    )}
+    {
+        isRecent || iframe ? (
+            <Fragment slot="center-header">
+                <div class="project-header-text">
+                    <h2>{title}</h2>
+                </div>
+                <a href={`${base}/`} class="close-btn" aria-label="Close">
+                    &times;
+                </a>
+            </Fragment>
+        ) : (
+            <Fragment slot="center-header">
+                <div class="project-header-text">
+                    <h2>{title}</h2>
+                </div>
+                <a href={`${base}/`} class="close-btn" aria-label="Close">
+                    &times;
+                </a>
+            </Fragment>
+        )
+    }
 
-    {!isRecent && !iframe && (
-        <Fragment slot="right-header">
-            <p class="meta">{year}{medium && <> · {medium}</>}</p>
-            <a href={`${base}/`} class="close-btn" aria-label="Close">&times;</a>
-        </Fragment>
-    )}
+    {
+        !isRecent && !iframe && (
+            <Fragment slot="right-header">
+                <p class="meta">
+                    {year}
+                    {medium && <> · {medium}</>}
+                </p>
+                <!-- <a href={`${base}/`} class="close-btn" aria-label="Close">
+                    &times;
+                </a> -->
+            </Fragment>
+        )
+    }
 
-    {!isRecent && iframe ? (
-        <iframe class="project-iframe" src={iframe} title={title}></iframe>
-    ) : (
-        <div class="project-body">
-            <div class="project-content" data-slug={slug}>
-                <Content components={fullPageComponents} />
+    {
+        !isRecent && iframe ? (
+            <iframe class="project-iframe" src={iframe} title={title} />
+        ) : (
+            <div class="project-body">
+                <div class="project-content" data-slug={slug}>
+                    <Content components={fullPageComponents} />
+                </div>
             </div>
-        </div>
-    )}
+        )
+    }
 </SiteLayout>
