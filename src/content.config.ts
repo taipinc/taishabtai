@@ -8,6 +8,7 @@ const posts = defineCollection({
       title: z.string(),
       year: z.number(),
       type: z.enum(["project", "ongoing", "interactive", "other-work", "teaching-tool", "video", "text", "recent"]),
+      status: z.enum(["published", "draft"]).default("published"),
       slug: z.string().optional(),
       size: z.number().min(1).max(3).optional(),
       medium: z.string().optional(),

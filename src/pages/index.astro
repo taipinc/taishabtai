@@ -6,7 +6,7 @@ import SiteLayout from "../layouts/SiteLayout.astro";
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 
 const allPosts = (await getCollection("posts"))
-    .filter(p => p.data.slug && p.data.type !== "text")
+    .filter(p => p.data.slug && p.data.type !== "text" && p.data.status !== "draft")
     .sort((a, b) => b.data.year - a.data.year);
 
 const groups = [

@@ -42,7 +42,7 @@ function recentDateKey(data: { year: number; month?: number; day?: number }) {
 }
 
 const recentRaw = (await getCollection("posts"))
-    .filter((p) => p.data.type === "recent")
+    .filter((p) => p.data.type === "recent" && p.data.status !== "draft")
     .sort((a, b) => {
         const ao = a.data.order ?? Infinity;
         const bo = b.data.order ?? Infinity;
@@ -59,7 +59,7 @@ const recentItems = await Promise.all(
 );
 
 const allPosts = (await getCollection("posts"))
-    .filter((p) => p.data.slug && p.data.type !== "text")
+    .filter((p) => p.data.slug && p.data.type !== "text" && p.data.status !== "draft")
     .sort((a, b) => b.data.year - a.data.year);
 
 const navGroups = [

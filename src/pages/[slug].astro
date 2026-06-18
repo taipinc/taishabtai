@@ -7,7 +7,7 @@ import NullBlock from "../components/NullBlock.astro";
 export async function getStaticPaths() {
     const allPosts = await getCollection("posts");
     return allPosts
-        .filter((item) => item.data.slug)
+        .filter((item) => item.data.slug && item.data.status !== "draft")
         .map((item) => ({
             params: { slug: item.data.slug },
             props: { item },
