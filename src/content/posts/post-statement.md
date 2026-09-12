@@ -2,7 +2,7 @@
 title: "Artist Statement"
 year: 2026
 type: text
-slug: artist-statement
+slug: artist-statement-old
 size: 3
 summary: "While I recognize the importance and impact of direct action against Israeli cultural institutions, I see my role in working to mobilize shame from within. I feel compelled to remain in conversation with that place and those who must reckon with it, even as each opportunity involves its own shame."
 ---
